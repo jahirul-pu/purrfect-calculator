@@ -1,22 +1,65 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe, ArrowLeftRight, TrendingUp } from "lucide-react";
-import { currencies, convertCurrency, formatCurrency } from "@/lib/currency";
+import { currencies, convertCurrency, fetchExchangeRate, formatCurrency, getFallbackExchangeRate } from "@/lib/currency";
 
 export function CurrencyConverter() {
   const [amount, setAmount] = useState<number>(0);
   const [fromCurrency, setFromCurrency] = useState<string>("USD");
   const [toCurrency, setToCurrency] = useState<string>("BDT");
+  const [exchangeRate, setExchangeRate] = useState<number>(() => convertCurrency(1, "USD", "BDT"));
+  const [rateDate, setRateDate] = useState<string | null>(null);
+  const [rateSource, setRateSource] = useState<"live" | "fallback">("fallback");
+  const [rateError, setRateError] = useState<string | null>(null);
+  const [isLoadingRate, setIsLoadingRate] = useState<boolean>(true);
 
-  const result = useMemo(() => 
-    convertCurrency(amount, fromCurrency, toCurrency)
-  , [amount, fromCurrency, toCurrency]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const fallback = getFallbackExchangeRate(fromCurrency, toCurrency);
+
+    setIsLoadingRate(true);
+    setRateError(null);
+
+    fetchExchangeRate(fromCurrency, toCurrency, controller.signal)
+      .then((snapshot) => {
+        setExchangeRate(snapshot.rate);
+        setRateDate(snapshot.date);
+        setRateSource(snapshot.source);
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setExchangeRate(fallback.rate);
+        setRateDate(fallback.date);
+        setRateSource(fallback.source);
+        setRateError(error instanceof Error ? error.message : "Live exchange rates are temporarily unavailable.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoadingRate(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [fromCurrency, toCurrency]);
+
+  const result = useMemo(() => amount * exchangeRate, [amount, exchangeRate]);
+  const formattedRateDate = useMemo(() => {
+    if (!rateDate) {
+      return null;
+    }
+
+    return new Date(`${rateDate}T00:00:00Z`).toLocaleDateString(undefined, {
+      dateStyle: "medium",
+    });
+  }, [rateDate]);
 
   const fromInfo = currencies.find(c => c.code === fromCurrency) || currencies[0];
-  const toInfo = currencies.find(c => c.code === toCurrency) || currencies[0];
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-700">
@@ -30,7 +73,9 @@ export function CurrencyConverter() {
           <CardTitle className="text-lg flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" /> Exchange Tool
           </CardTitle>
-          <CardDescription>Using standardized rates for estimation.</CardDescription>
+          <CardDescription>
+            Live reference rates via Frankfurter, with built-in fallback estimates if the feed is unavailable.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8 py-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -91,15 +136,26 @@ export function CurrencyConverter() {
                </div>
 
                <div className="inline-flex items-center gap-2 px-6 py-2 rounded-lg bg-muted border text-sm font-medium">
-                 1 {fromCurrency} = {formatCurrency(convertCurrency(1, fromCurrency, toCurrency), toCurrency)}
+                 1 {fromCurrency} = {formatCurrency(exchangeRate, toCurrency)}
                </div>
+
+               <p className="text-xs text-muted-foreground text-center max-w-xs leading-relaxed">
+                 {isLoadingRate && "Refreshing live reference rate..."}
+                 {!isLoadingRate && rateSource === "live" && (
+                   <>Live reference rate{formattedRateDate ? ` from ${formattedRateDate}` : ""}.</>
+                 )}
+                 {!isLoadingRate && rateSource === "fallback" && "Using stored fallback estimates while the live rate feed is unavailable."}
+               </p>
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-muted/30 border border-dashed flex items-start gap-3">
              <TrendingUp className="h-5 w-5 text-primary shrink-0 mt-0.5" />
              <p className="text-xs text-muted-foreground leading-relaxed">
-               Note: These are <span className="text-foreground font-bold">Standardized Estimations</span> based on common market averages. For real-time financial transactions, please refer to your bank's official daily exchange rates.
+               Source: <span className="text-foreground font-bold">{rateSource === "live" ? "Frankfurter daily reference rates" : "Built-in fallback table"}</span>
+               {formattedRateDate ? ` updated ${formattedRateDate}.` : "."}{" "}
+               {rateError ? `${rateError} ` : ""}
+               Final transaction amounts may still differ from your bank, card network, or money transfer provider.
              </p>
           </div>
         </CardContent>

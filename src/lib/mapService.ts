@@ -1,5 +1,3 @@
-import mapboxgl from 'mapbox-gl';
-
 export interface MapLocation {
   lat: number;
   lng: number;

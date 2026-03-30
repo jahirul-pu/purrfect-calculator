@@ -5,6 +5,12 @@ export interface CurrencyInfo {
   rateToUsd: number; // 1 USD = X Currency
 }
 
+export interface ExchangeRateSnapshot {
+  rate: number;
+  date: string | null;
+  source: "live" | "fallback";
+}
+
 export const currencies: CurrencyInfo[] = [
   { code: "BDT", name: "Bangladeshi Taka", symbol: "৳", rateToUsd: 110 },
   { code: "USD", name: "US Dollar", symbol: "$", rateToUsd: 1 },
@@ -31,6 +37,57 @@ export function convertCurrency(amount: number, fromCode: string, toCode: string
   // Convert to USD first, then to target
   const inUsd = amount / from.rateToUsd;
   return inUsd * to.rateToUsd;
+}
+
+export function getFallbackExchangeRate(fromCode: string, toCode: string): ExchangeRateSnapshot {
+  return {
+    rate: convertCurrency(1, fromCode, toCode),
+    date: null,
+    source: "fallback",
+  };
+}
+
+export async function fetchExchangeRate(
+  fromCode: string,
+  toCode: string,
+  signal?: AbortSignal,
+): Promise<ExchangeRateSnapshot> {
+  if (fromCode === toCode) {
+    return {
+      rate: 1,
+      date: new Date().toISOString().slice(0, 10),
+      source: "live",
+    };
+  }
+
+  const endpoint = new URL("https://api.frankfurter.dev/v2/rates");
+  endpoint.searchParams.set("base", fromCode);
+  endpoint.searchParams.set("quotes", toCode);
+
+  const response = await fetch(endpoint.toString(), { signal });
+
+  if (!response.ok) {
+    throw new Error(`Live exchange request failed with status ${response.status}.`);
+  }
+
+  const data = await response.json() as Array<{
+    date?: string;
+    quote?: string;
+    rate?: number;
+  }>;
+
+  const quote = data.find((entry) => entry.quote === toCode);
+  const rate = quote?.rate;
+
+  if (typeof rate !== "number") {
+    throw new Error(`Live exchange request did not include a ${toCode} rate.`);
+  }
+
+  return {
+    rate,
+    date: quote?.date ?? null,
+    source: "live",
+  };
 }
 
 export function formatCurrency(amount: number, code: string): string {
