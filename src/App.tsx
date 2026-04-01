@@ -1,4 +1,5 @@
 import { PowerCalculator } from "@/components/PowerCalculator";
+import { BankingCalculator } from "@/components/BankingCalculator";
 import { VehicleCalculator } from "@/components/VehicleCalculator";
 import { AgeCalculator } from "@/components/AgeCalculator";
 import { UnitConverter } from "@/components/UnitConverter";
@@ -8,7 +9,7 @@ import { InvestmentCalculator } from "@/components/InvestmentCalculator";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { RangeMap } from "@/components/RangeMap";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon } from "lucide-react";
+import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon, Landmark } from "lucide-react";
 import { useState } from "react";
 import { currencies } from "@/lib/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -65,8 +66,8 @@ function App() {
           </div>
         </header>
 
-        <Tabs defaultValue="power" className="w-full space-y-10">
-          <TabsList className="inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-4 lg:grid-cols-9">
+        <Tabs defaultValue="power" className="w-full space-y-10" key="main-tabs">
+          <TabsList className="inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-5 lg:grid-cols-10">
             <TabsTrigger value="power" className="flex items-center gap-2 py-3 px-4">
               <Zap className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Power</span>
             </TabsTrigger>
@@ -93,6 +94,9 @@ function App() {
             </TabsTrigger>
             <TabsTrigger value="map" className="flex items-center gap-2 py-3 px-4">
               <MapIcon className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Map</span>
+            </TabsTrigger>
+            <TabsTrigger value="banking" className="flex items-center gap-2 py-3 px-4">
+              <Landmark className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Banking</span>
             </TabsTrigger>
           </TabsList>
           
@@ -129,6 +133,9 @@ function App() {
             </TabsContent>
             <TabsContent value="map" className="mt-0 focus-visible:outline-none">
               <RangeMap rangeKm={mapRange} vehicleType={mapVehicleType} />
+            </TabsContent>
+            <TabsContent value="banking" className="mt-0 focus-visible:outline-none">
+              <BankingCalculator />
             </TabsContent>
           </div>
         </Tabs>
