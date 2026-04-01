@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { InsightBox } from "@/components/InsightBox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   PiggyBank,
@@ -18,12 +20,12 @@ import {
   Wallet,
 } from "lucide-react";
 import { calculateDPS, type DPSResult } from "@/lib/fdrDpsCalc";
+import { getDPSInsight } from "@/lib/insights";
 
 function formatBDT(amount: number): string {
   return `৳ ${amount.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-// Common monthly installment presets used in BD banks
 const INSTALLMENT_PRESETS = [500, 1000, 2000, 5000, 10000, 25000, 50000];
 
 export function DPSCalculator() {
@@ -42,6 +44,17 @@ export function DPSCalculator() {
     setShowResult(true);
   };
 
+  const insight = useMemo(() => {
+    if (!result) return null;
+    return getDPSInsight(
+      result.totalPrincipalInjected,
+      result.netInterest,
+      result.maturityAmount,
+      result.monthlyInstallment,
+      years
+    );
+  }, [result, years]);
+
   return (
     <div className="space-y-6">
       {/* ── Input Card ── */}
@@ -55,21 +68,24 @@ export function DPSCalculator() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Monthly Installment */}
-          <div className="grid gap-2">
-            <Label htmlFor="dps-installment" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Monthly Installment (BDT)
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-muted-foreground font-bold text-sm">৳</span>
-              <Input
-                id="dps-installment"
-                type="number"
-                className="pl-8"
-                value={monthlyInstallment}
-                onChange={(e) => setMonthlyInstallment(parseFloat(e.target.value) || 0)}
-              />
+          {/* Monthly Installment Slider */}
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Monthly Installment (BDT)
+              </Label>
+              <span className="text-sm font-black tabular-nums text-sky-600">
+                {formatBDT(monthlyInstallment)}
+              </span>
             </div>
+            <Slider
+              value={[monthlyInstallment]}
+              onValueChange={([v]) => setMonthlyInstallment(v)}
+              min={500}
+              max={100000}
+              step={500}
+              className="w-full"
+            />
             {/* Quick presets */}
             <div className="flex flex-wrap gap-1.5">
               {INSTALLMENT_PRESETS.map((preset) => (
@@ -88,40 +104,44 @@ export function DPSCalculator() {
             </div>
           </div>
 
-          {/* Interest Rate */}
-          <div className="grid gap-2">
-            <Label htmlFor="dps-rate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Interest Rate (Annual %)
-            </Label>
-            <div className="relative">
-              <Input
-                id="dps-rate"
-                type="number"
-                step="0.1"
-                value={interestRate}
-                onChange={(e) => setInterestRate(parseFloat(e.target.value) || 0)}
-              />
-              <Percent className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          {/* Interest Rate Slider */}
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Interest Rate (Annual %)
+              </Label>
+              <span className="text-sm font-black tabular-nums text-sky-600">
+                {interestRate}%
+              </span>
             </div>
+            <Slider
+              value={[interestRate]}
+              onValueChange={([v]) => setInterestRate(v)}
+              min={3}
+              max={15}
+              step={0.25}
+              className="w-full"
+            />
           </div>
 
           {/* Term Duration */}
-          <div className="grid gap-2">
-            <Label htmlFor="dps-years" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Term Duration (Years)
-            </Label>
-            <Select value={String(years)} onValueChange={(v) => setYears(parseInt(v))}>
-              <SelectTrigger id="dps-years">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 10].map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y} {y === 1 ? "Year" : "Years"} ({y * 12} Months)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Term Duration (Years)
+              </Label>
+              <span className="text-sm font-black tabular-nums text-sky-600">
+                {years} yrs ({years * 12} months)
+              </span>
+            </div>
+            <Slider
+              value={[years]}
+              onValueChange={([v]) => setYears(v)}
+              min={1}
+              max={10}
+              step={1}
+              className="w-full"
+            />
           </div>
 
           {/* Tax Toggle */}
@@ -135,11 +155,7 @@ export function DPSCalculator() {
                 </p>
               </div>
             </div>
-            <Switch
-              id="dps-tax-toggle"
-              checked={isTinLinked}
-              onCheckedChange={setIsTinLinked}
-            />
+            <Switch id="dps-tax-toggle" checked={isTinLinked} onCheckedChange={setIsTinLinked} />
           </div>
 
           {/* Calculate Button */}
@@ -164,7 +180,7 @@ export function DPSCalculator() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-600/80">
                 Total Maturity Amount
               </p>
-              <p className="text-4xl md:text-5xl font-black text-sky-600 animate-in zoom-in-75 duration-500">
+              <p className="text-4xl md:text-5xl font-black text-sky-600 animate-in zoom-in-75 duration-500 tabular-nums">
                 {formatBDT(result.maturityAmount)}
               </p>
               <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -189,7 +205,7 @@ export function DPSCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0 flex-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Principal Injected</p>
-                  <p className="text-xl font-bold">{formatBDT(result.totalPrincipalInjected)}</p>
+                  <p className="text-xl font-bold tabular-nums">{formatBDT(result.totalPrincipalInjected)}</p>
                   <p className="text-[10px] text-muted-foreground">
                     {formatBDT(result.monthlyInstallment)} × {result.totalMonths} months
                   </p>
@@ -204,7 +220,7 @@ export function DPSCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Gross Interest</p>
-                  <p className="text-lg font-bold truncate">{formatBDT(result.grossInterest)}</p>
+                  <p className="text-lg font-bold truncate tabular-nums">{formatBDT(result.grossInterest)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -216,7 +232,7 @@ export function DPSCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tax Deducted</p>
-                  <p className="text-lg font-bold truncate text-rose-600">{formatBDT(result.taxDeducted)}</p>
+                  <p className="text-lg font-bold truncate text-rose-600 tabular-nums">{formatBDT(result.taxDeducted)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -228,7 +244,7 @@ export function DPSCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Net Yield</p>
-                  <p className="text-lg font-bold truncate text-emerald-600">{formatBDT(result.netInterest)}</p>
+                  <p className="text-lg font-bold truncate text-emerald-600 tabular-nums">{formatBDT(result.netInterest)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -240,7 +256,7 @@ export function DPSCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Maturity</p>
-                  <p className="text-lg font-bold truncate">{formatBDT(result.maturityAmount)}</p>
+                  <p className="text-lg font-bold truncate tabular-nums">{formatBDT(result.maturityAmount)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -283,7 +299,10 @@ export function DPSCalculator() {
             </CardContent>
           </Card>
 
-          {/* Footer note */}
+          {/* Insight */}
+          {insight && <InsightBox insight={insight} />}
+
+          {/* Footer */}
           <div className="p-4 rounded-lg border bg-muted/30 flex items-start gap-3">
             <ShieldCheck className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed">

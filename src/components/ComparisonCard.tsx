@@ -1,9 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeftRight, TrendingDown, TrendingUp, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { InsightBox } from "@/components/InsightBox";
+import { ArrowLeftRight, TrendingDown, TrendingUp, TrendingUpIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/currency";
+import { formatCurrency, currencies } from "@/lib/currency";
+import { getVehicleSavingsInsight } from "@/lib/insights";
+import { useCalculatorContext } from "@/context/CalculatorContext";
+import { useMemo } from "react";
 
 interface ComparisonCardProps {
   evCostPerKm: number;
@@ -17,6 +22,17 @@ export function ComparisonCard({ evCostPerKm, fuelCostPerKm, distance, setDistan
   const evTotal = evCostPerKm * distance;
   const fuelTotal = fuelCostPerKm * distance;
   const savings = fuelTotal - evTotal;
+
+  const ctx = useCalculatorContext();
+  const activeCurrency = currencies.find(c => c.code === currency) || currencies[0];
+  const sym = activeCurrency.code === "BDT" ? "BDT" : activeCurrency.symbol;
+
+  const annualSavings = savings > 0 ? savings * 30 * 12 : 0; // rough daily→annual if distance is daily commute
+
+  const insight = useMemo(
+    () => getVehicleSavingsInsight(savings, distance, sym),
+    [savings, distance, sym]
+  );
 
   return (
     <Card className="h-full border-dashed shadow-none">
@@ -43,12 +59,12 @@ export function ComparisonCard({ evCostPerKm, fuelCostPerKm, distance, setDistan
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-lg border bg-emerald-500/5 flex flex-col items-center text-center">
             <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">EV Cost</span>
-            <span className="text-xl font-bold">{formatCurrency(evTotal, currency)}</span>
+            <span className="text-xl font-bold tabular-nums">{formatCurrency(evTotal, currency)}</span>
             <span className="text-[10px] text-muted-foreground">{formatCurrency(evCostPerKm, currency)}/km</span>
           </div>
           <div className="p-4 rounded-lg border bg-rose-500/5 flex flex-col items-center text-center">
             <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400">Fuel Cost</span>
-            <span className="text-xl font-bold">{formatCurrency(fuelTotal, currency)}</span>
+            <span className="text-xl font-bold tabular-nums">{formatCurrency(fuelTotal, currency)}</span>
             <span className="text-[10px] text-muted-foreground">{formatCurrency(fuelCostPerKm, currency)}/km</span>
           </div>
         </div>
@@ -72,14 +88,19 @@ export function ComparisonCard({ evCostPerKm, fuelCostPerKm, distance, setDistan
            </div>
         </div>
 
-        <div className="p-4 border border-dashed rounded-lg space-y-2">
-           <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-extrabold flex items-center gap-1">
-             <AlertCircle className="h-3 w-3" /> Quick Insight
-           </Label>
-           <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-             EV operational costs are approximately <span className="text-foreground font-bold">{fuelCostPerKm > 0 ? Math.round((evCostPerKm / fuelCostPerKm) * 100) : 0}%</span> of ICE vehicles at current rates.
-           </p>
-        </div>
+        {/* ─── "Invest These Savings" Bridge ─── */}
+        {savings > 0 && distance > 0 && (
+          <Button
+            className="w-full h-11 font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-600/20 transition-all duration-300 hover:shadow-emerald-600/35 hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-2 duration-500"
+            onClick={() => ctx.pushToInvest(annualSavings, `Vehicle savings: ${formatCurrency(savings, currency)}/trip`)}
+          >
+            <TrendingUpIcon className="h-4 w-4 mr-2" />
+            Invest These Savings →
+          </Button>
+        )}
+
+        {/* Insight */}
+        <InsightBox insight={insight} />
       </CardContent>
     </Card>
   );

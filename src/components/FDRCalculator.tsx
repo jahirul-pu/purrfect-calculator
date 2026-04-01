@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { InsightBox } from "@/components/InsightBox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Landmark,
@@ -18,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { calculateFDR, type FDRResult } from "@/lib/fdrDpsCalc";
+import { getFDRInsight } from "@/lib/insights";
 
 function formatBDT(amount: number): string {
   return `৳ ${amount.toLocaleString("en-BD", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -41,6 +44,18 @@ export function FDRCalculator() {
     setResult(r);
     setShowResult(true);
   };
+
+  const insight = useMemo(() => {
+    if (!result) return null;
+    return getFDRInsight(
+      result.principal,
+      result.maturityAmount,
+      result.grossInterest,
+      result.taxDeducted,
+      autoRenew,
+      termMonths
+    );
+  }, [result, autoRenew, termMonths]);
 
   return (
     <div className="space-y-6">
@@ -72,35 +87,44 @@ export function FDRCalculator() {
             </div>
           </div>
 
-          {/* Interest Rate */}
-          <div className="grid gap-2">
-            <Label htmlFor="fdr-rate" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Interest Rate (Annual %)
-            </Label>
-            <div className="relative">
-              <Input
-                id="fdr-rate"
-                type="number"
-                step="0.1"
-                value={interestRate}
-                onChange={(e) => setInterestRate(parseFloat(e.target.value) || 0)}
-              />
-              <Percent className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          {/* Interest Rate Slider */}
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Interest Rate (Annual %)
+              </Label>
+              <span className="text-sm font-black tabular-nums text-emerald-600">
+                {interestRate}%
+              </span>
             </div>
+            <Slider
+              value={[interestRate]}
+              onValueChange={([v]) => setInterestRate(v)}
+              min={3}
+              max={15}
+              step={0.25}
+              className="w-full"
+            />
           </div>
 
           {/* Term Duration */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="fdr-term" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Duration
-              </Label>
-              <Input
-                id="fdr-term"
-                type="number"
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Duration
+                </Label>
+                <span className="text-sm font-black tabular-nums text-emerald-600">
+                  {termValue} {termUnit === "years" ? "yr" : "mo"}
+                </span>
+              </div>
+              <Slider
+                value={[termValue]}
+                onValueChange={([v]) => setTermValue(v)}
                 min={1}
-                value={termValue}
-                onChange={(e) => setTermValue(parseInt(e.target.value) || 1)}
+                max={termUnit === "years" ? 10 : 120}
+                step={1}
+                className="w-full"
               />
             </div>
             <div className="grid gap-2">
@@ -129,11 +153,7 @@ export function FDRCalculator() {
                   </p>
                 </div>
               </div>
-              <Switch
-                id="fdr-tax-toggle"
-                checked={isTinLinked}
-                onCheckedChange={setIsTinLinked}
-              />
+              <Switch id="fdr-tax-toggle" checked={isTinLinked} onCheckedChange={setIsTinLinked} />
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
@@ -146,11 +166,7 @@ export function FDRCalculator() {
                   </p>
                 </div>
               </div>
-              <Switch
-                id="fdr-renew-toggle"
-                checked={autoRenew}
-                onCheckedChange={setAutoRenew}
-              />
+              <Switch id="fdr-renew-toggle" checked={autoRenew} onCheckedChange={setAutoRenew} />
             </div>
           </div>
 
@@ -176,7 +192,7 @@ export function FDRCalculator() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600/80">
                 Total Maturity Amount
               </p>
-              <p className="text-4xl md:text-5xl font-black text-emerald-600 animate-in zoom-in-75 duration-500">
+              <p className="text-4xl md:text-5xl font-black text-emerald-600 animate-in zoom-in-75 duration-500 tabular-nums">
                 {formatBDT(result.maturityAmount)}
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold">
@@ -195,7 +211,7 @@ export function FDRCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Gross Interest</p>
-                  <p className="text-lg font-bold truncate">{formatBDT(result.grossInterest)}</p>
+                  <p className="text-lg font-bold truncate tabular-nums">{formatBDT(result.grossInterest)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -207,7 +223,7 @@ export function FDRCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tax Deducted</p>
-                  <p className="text-lg font-bold truncate text-rose-600">{formatBDT(result.taxDeducted)}</p>
+                  <p className="text-lg font-bold truncate text-rose-600 tabular-nums">{formatBDT(result.taxDeducted)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -219,7 +235,7 @@ export function FDRCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Net Interest</p>
-                  <p className="text-lg font-bold truncate text-emerald-600">{formatBDT(result.netInterest)}</p>
+                  <p className="text-lg font-bold truncate text-emerald-600 tabular-nums">{formatBDT(result.netInterest)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -231,13 +247,13 @@ export function FDRCalculator() {
                 </div>
                 <div className="space-y-0.5 min-w-0">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Principal</p>
-                  <p className="text-lg font-bold truncate">{formatBDT(result.principal)}</p>
+                  <p className="text-lg font-bold truncate tabular-nums">{formatBDT(result.principal)}</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Yearly Breakdown (if compound / multiple years) */}
+          {/* Yearly Breakdown */}
           {result.yearlyBreakdown.length > 1 && (
             <Card className="overflow-hidden">
               <div className="p-4 border-b bg-muted/30 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
@@ -260,7 +276,7 @@ export function FDRCalculator() {
                       </p>
                     </div>
                     <div className="col-span-5 text-right">
-                      <p className="text-sm font-black tracking-tight">{formatBDT(yr.closingBalance)}</p>
+                      <p className="text-sm font-black tracking-tight tabular-nums">{formatBDT(yr.closingBalance)}</p>
                       <p className="text-[10px] text-muted-foreground">closing balance</p>
                     </div>
                   </div>
@@ -269,7 +285,10 @@ export function FDRCalculator() {
             </Card>
           )}
 
-          {/* Footer note */}
+          {/* Insight */}
+          {insight && <InsightBox insight={insight} />}
+
+          {/* Footer */}
           <div className="p-4 rounded-lg border bg-muted/30 flex items-start gap-3">
             <ShieldCheck className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed">
