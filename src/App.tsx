@@ -54,9 +54,9 @@ function App() {
     <CalculatorProvider activeMainTab={activeTab} setActiveMainTab={setActiveTab}>
       <div className="min-h-screen bg-background font-sans antialiased text-foreground">
         <div className="container mx-auto py-10 px-4 md:px-8 max-w-7xl space-y-8 animate-in fade-in duration-700">
-          <header className="flex flex-col items-center text-center space-y-6 mb-12 relative">
-            <div className="absolute right-0 top-0 hidden md:block">
-              <div className="flex items-center gap-3 bg-muted/30 p-2 rounded-lg border">
+          <div className="sticky top-0 z-40 -mx-4 md:-mx-8 px-4 md:px-8 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+              <div className="hidden md:flex items-center gap-3 bg-muted/30 p-2 rounded-lg border">
                 <div className="flex items-center gap-2">
                   {isDarkMode ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
                   <Label htmlFor="desktop-theme-toggle" className="text-xs text-muted-foreground">Dark</Label>
@@ -79,8 +79,37 @@ function App() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="md:hidden w-full space-y-3">
+                <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                    <Label htmlFor="mobile-theme-toggle">Dark mode</Label>
+                  </div>
+                  <Toggle
+                    id="mobile-theme-toggle"
+                    pressed={isDarkMode}
+                    onPressedChange={setIsDarkMode}
+                    aria-label="Toggle dark mode"
+                  />
+                </div>
+
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="w-full">
+                    <Globe className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map(c => (
+                      <SelectItem key={c.code} value={c.code}>{c.code} - {c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
+          </div>
+
+          <header className="flex flex-col items-center text-center space-y-6 mb-6">
             <div className="p-3 rounded-full bg-primary/10 text-primary mb-2 shadow-inner">
               <Activity className="h-8 w-8" />
             </div>
@@ -90,37 +119,10 @@ function App() {
             <p className="text-xl text-muted-foreground max-w-[600px]">
               Professional-grade utility tools localized for <strong>{activeCurrency.name}</strong>.
             </p>
-
-            <div className="md:hidden w-full space-y-3">
-              <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  <Label htmlFor="mobile-theme-toggle">Dark mode</Label>
-                </div>
-                <Toggle
-                  id="mobile-theme-toggle"
-                  pressed={isDarkMode}
-                  onPressedChange={setIsDarkMode}
-                  aria-label="Toggle dark mode"
-                />
-              </div>
-
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="w-full">
-                  <Globe className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map(c => (
-                    <SelectItem key={c.code} value={c.code}>{c.code} - {c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </header>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-10">
-            <TabsList className="inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-5 lg:grid-cols-12">
+            <TabsList className="sticky top-[88px] z-30 inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-5 lg:grid-cols-12">
               <TabsTrigger value="power" className="flex items-center gap-2 py-3 px-4">
                 <Zap className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Power</span>
               </TabsTrigger>
