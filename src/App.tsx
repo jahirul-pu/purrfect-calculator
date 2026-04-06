@@ -10,19 +10,44 @@ import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { RangeMap } from "@/components/RangeMap";
 import { PercentageCalculator } from "@/components/PercentageCalculator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon, Landmark, Percent } from "lucide-react";
-import { useState } from "react";
+import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon, Landmark, Percent, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 import { currencies } from "@/lib/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalculatorProvider } from "@/context/CalculatorContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+
+const THEME_STORAGE_KEY = "calculator-theme";
 
 function App() {
   const [currency, setCurrency] = useState("USD");
   const [mapRange, setMapRange] = useState(100);
   const [mapVehicleType, setMapVehicleType] = useState<"EV" | "Fuel">("EV");
   const [activeTab, setActiveTab] = useState("power");
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const activeCurrency = currencies.find(c => c.code === currency) || currencies[0];
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      return;
+    }
+
+    if (savedTheme === "light") {
+      setIsDarkMode(false);
+      return;
+    }
+
+    setIsDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   return (
     <CalculatorProvider activeMainTab={activeTab} setActiveMainTab={setActiveTab}>
@@ -30,7 +55,17 @@ function App() {
         <div className="container mx-auto py-10 px-4 md:px-8 max-w-7xl space-y-8 animate-in fade-in duration-700">
           <header className="flex flex-col items-center text-center space-y-6 mb-12 relative">
             <div className="absolute right-0 top-0 hidden md:block">
-              <div className="flex items-center gap-2 bg-muted/30 p-2 rounded-lg border">
+              <div className="flex items-center gap-3 bg-muted/30 p-2 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  {isDarkMode ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
+                  <Label htmlFor="desktop-theme-toggle" className="text-xs text-muted-foreground">Dark</Label>
+                  <Switch
+                    id="desktop-theme-toggle"
+                    checked={isDarkMode}
+                    onCheckedChange={setIsDarkMode}
+                    aria-label="Toggle dark mode"
+                  />
+                </div>
                 <Globe className="h-4 w-4 text-muted-foreground" />
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger className="w-[120px] h-8 border-none bg-transparent focus:ring-0">
@@ -55,7 +90,20 @@ function App() {
               Professional-grade utility tools localized for <strong>{activeCurrency.name}</strong>.
             </p>
 
-            <div className="md:hidden w-full">
+            <div className="md:hidden w-full space-y-3">
+              <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  <Label htmlFor="mobile-theme-toggle">Dark mode</Label>
+                </div>
+                <Switch
+                  id="mobile-theme-toggle"
+                  checked={isDarkMode}
+                  onCheckedChange={setIsDarkMode}
+                  aria-label="Toggle dark mode"
+                />
+              </div>
+
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className="w-full">
                   <Globe className="h-4 w-4 mr-2" />
