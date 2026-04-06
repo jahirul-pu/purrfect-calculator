@@ -27,6 +27,8 @@ import {
 export function InvestmentCalculator({ currency }: { currency: string }) {
   const [initialBalance, setInitialBalance] = useState<number>(0);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(0);
+  const [initialBalanceInput, setInitialBalanceInput] = useState<string>("");
+  const [monthlyContributionInput, setMonthlyContributionInput] = useState<string>("");
   const [annualRate, setAnnualRate] = useState<number>(8);
   const [years, setYears] = useState<number>(10);
   const [showReality, setShowReality] = useState(false);
@@ -38,9 +40,11 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
     if (ctx.investPrefill) {
       if (ctx.investPrefill.initialBalance > 0) {
         setInitialBalance(ctx.investPrefill.initialBalance);
+        setInitialBalanceInput(String(ctx.investPrefill.initialBalance));
       }
       if (ctx.investPrefill.monthlyContribution > 0) {
         setMonthlyContribution(ctx.investPrefill.monthlyContribution);
+        setMonthlyContributionInput(String(ctx.investPrefill.monthlyContribution));
       }
       setYears(10);
       ctx.clearInvestPrefill();
@@ -133,10 +137,12 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                 </Label>
                 <Input
                   type="number"
-                  value={initialBalance}
-                  onChange={(e) =>
-                    setInitialBalance(Number(e.target.value))
-                  }
+                  value={initialBalanceInput}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setInitialBalanceInput(raw);
+                    setInitialBalance(raw === "" ? 0 : Number(raw));
+                  }}
                 />
               </div>
 
@@ -152,7 +158,10 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                 </div>
                 <Slider
                   value={[monthlyContribution]}
-                  onValueChange={([v]) => setMonthlyContribution(v)}
+                  onValueChange={([v]) => {
+                    setMonthlyContribution(v);
+                    setMonthlyContributionInput(v === 0 ? "" : String(v));
+                  }}
                   min={0}
                   max={100000}
                   step={500}
@@ -160,10 +169,12 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                 />
                 <Input
                   type="number"
-                  value={monthlyContribution}
-                  onChange={(e) =>
-                    setMonthlyContribution(Number(e.target.value))
-                  }
+                  value={monthlyContributionInput}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setMonthlyContributionInput(raw);
+                    setMonthlyContribution(raw === "" ? 0 : Number(raw));
+                  }}
                   className="h-8 text-xs"
                 />
               </div>

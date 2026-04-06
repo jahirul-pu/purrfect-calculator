@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Globe, ArrowLeftRight, TrendingUp } from "lucide-react";
 import { currencies, convertCurrency, fetchExchangeRate, formatCurrency, getFallbackExchangeRate } from "@/lib/currency";
 
@@ -61,6 +62,11 @@ export function CurrencyConverter() {
 
   const fromInfo = currencies.find(c => c.code === fromCurrency) || currencies[0];
 
+  const handleSwapCurrencies = () => {
+    setFromCurrency(toCurrency);
+    setToCurrency(fromCurrency);
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-700">
       <div className="flex flex-col gap-2">
@@ -80,19 +86,6 @@ export function CurrencyConverter() {
         <CardContent className="space-y-8 py-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
-              <div className="grid gap-2">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Amount</Label>
-                <div className="relative">
-                   <span className="absolute left-3 top-2.5 text-muted-foreground font-bold">{fromInfo.symbol}</span>
-                   <Input 
-                    type="number" 
-                    value={amount} 
-                    onChange={(e) => setAmount(Number(e.target.value))} 
-                    className="pl-12 text-lg font-bold h-12"
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">From</Label>
@@ -121,12 +114,32 @@ export function CurrencyConverter() {
                   </Select>
                 </div>
               </div>
+
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Amount</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground font-bold">{fromInfo.symbol}</span>
+                  <Input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className="pl-12 text-lg font-bold h-12"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col items-center justify-center space-y-4">
-               <div className="p-4 rounded-full bg-primary/10 text-primary">
+               <Button
+                 type="button"
+                 variant="outline"
+                 size="icon"
+                 onClick={handleSwapCurrencies}
+                 className="h-14 w-14 rounded-full border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                 aria-label="Swap from and to currencies"
+               >
                  <ArrowLeftRight className="h-8 w-8" />
-               </div>
+               </Button>
                
                <div className="text-center space-y-1">
                  <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Converted Amount</p>

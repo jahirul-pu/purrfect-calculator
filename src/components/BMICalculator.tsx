@@ -2,32 +2,96 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Activity, User, Info } from "lucide-react";
-import { calculateBMI, imperialToMetric } from "@/lib/bmiCalc";
+import { Activity, User, Info, HeartPulse } from "lucide-react";
+import { calculateBMI } from "@/lib/bmiCalc";
 import { cn } from "@/lib/utils";
 
-export function BMICalculator() {
-  const [unitSystem, setUnitSystem] = useState<"metric" | "imperial">("metric");
-  
-  // Metric
-  const [weightKg, setWeightKg] = useState<number>(0);
-  const [heightCm, setHeightCm] = useState<number>(0);
+interface BMIFeedback {
+  riskLevel: string;
+  summary: string;
+  guidance: string;
+}
 
-  // Imperial
-  const [lbs, setLbs] = useState<number>(0);
-  const [ft, setFt] = useState<number>(0);
-  const [inches, setInches] = useState<number>(0);
+export function BMICalculator() {
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
+  const [heightUnit, setHeightUnit] = useState<"cm" | "ftin">("cm");
+  const [weightValue, setWeightValue] = useState<string>("");
+  const [heightCm, setHeightCm] = useState<string>("");
+  const [heightFt, setHeightFt] = useState<string>("");
+  const [heightInches, setHeightInches] = useState<string>("");
 
   const result = useMemo(() => {
-    if (unitSystem === "metric") {
-      return calculateBMI(weightKg, heightCm);
-    } else {
-      const { weightKg: w, heightCm: h } = imperialToMetric(lbs, ft, inches);
-      return calculateBMI(w, h);
+    const parsedWeight = parseFloat(weightValue);
+    const parsedHeightCm = parseFloat(heightCm);
+    const parsedHeightFt = parseFloat(heightFt);
+    const parsedHeightInches = parseFloat(heightInches);
+
+    const safeWeight = Number.isFinite(parsedWeight) ? parsedWeight : 0;
+    const safeHeightCm = Number.isFinite(parsedHeightCm) ? parsedHeightCm : 0;
+    const safeHeightFt = Number.isFinite(parsedHeightFt) ? parsedHeightFt : 0;
+    const safeHeightInches = Number.isFinite(parsedHeightInches) ? parsedHeightInches : 0;
+
+    const weightKg = weightUnit === "kg" ? safeWeight : safeWeight * 0.453592;
+    const resolvedHeightCm = heightUnit === "cm"
+      ? safeHeightCm
+      : (safeHeightFt * 30.48) + (safeHeightInches * 2.54);
+    return calculateBMI(weightKg, resolvedHeightCm);
+  }, [weightUnit, weightValue, heightUnit, heightCm, heightFt, heightInches]);
+
+  const idealRangeDisplay = useMemo(() => {
+    if (result.minIdealKg <= 0 || result.maxIdealKg <= 0) return "";
+    if (weightUnit === "kg") {
+      return `${result.minIdealKg.toFixed(1)} kg - ${result.maxIdealKg.toFixed(1)} kg`;
     }
-  }, [unitSystem, weightKg, heightCm, lbs, ft, inches]);
+
+    const minLb = result.minIdealKg * 2.20462;
+    const maxLb = result.maxIdealKg * 2.20462;
+    return `${minLb.toFixed(1)} lb - ${maxLb.toFixed(1)} lb`;
+  }, [result.minIdealKg, result.maxIdealKg, weightUnit]);
+
+  const hasValidResult = result.bmi > 0;
+
+  const medicalFeedback = useMemo((): BMIFeedback => {
+    if (!hasValidResult) {
+      return {
+        riskLevel: "N/A",
+        summary: "Enter valid height and weight to generate BMI interpretation.",
+        guidance: "For adults, BMI categories are interpreted using standard clinical cutoffs.",
+      };
+    }
+
+    if (result.category === "Underweight") {
+      return {
+        riskLevel: "Moderate",
+        summary: "BMI below 18.5 may be associated with undernutrition, low muscle mass, or underlying illness.",
+        guidance: "Consider nutrition optimization and discuss persistent low BMI with a clinician, especially if there is weight loss or fatigue.",
+      };
+    }
+
+    if (result.category === "Normal") {
+      return {
+        riskLevel: "Lower",
+        summary: "BMI 18.5-24.9 is generally associated with lower cardiometabolic risk for most adults.",
+        guidance: "Maintain regular physical activity, balanced diet, sleep, and preventive health checks.",
+      };
+    }
+
+    if (result.category === "Overweight") {
+      return {
+        riskLevel: "Elevated",
+        summary: "BMI 25.0-29.9 is associated with higher risk of hypertension, type 2 diabetes, and cardiovascular disease over time.",
+        guidance: "Even a 5-10% weight reduction can improve blood pressure, glucose control, and lipid profile.",
+      };
+    }
+
+    return {
+      riskLevel: "High",
+      summary: "BMI 30 or above is associated with substantially increased cardiometabolic and musculoskeletal risk.",
+      guidance: "A clinician-guided plan can help: nutrition, activity, behavior support, and where appropriate, obesity-focused medical treatment.",
+    };
+  }, [hasValidResult, result.bmi, result.category]);
 
   // Map BMI 15-40 to Progress 0-100
   const progressValue = Math.min(Math.max(((result.bmi - 15) / (40 - 15)) * 100, 0), 100);
@@ -58,40 +122,76 @@ export function BMICalculator() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Tabs value={unitSystem} onValueChange={(v: any) => setUnitSystem(v)}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="metric">Metric</TabsTrigger>
-                  <TabsTrigger value="imperial">Imperial</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="metric" className="pt-4 space-y-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="weight-kg" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Weight (kg)</Label>
-                    <Input id="weight-kg" type="number" value={weightKg} onChange={(e) => setWeightKg(parseFloat(e.target.value) || 0)} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="height-cm" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Height (cm)</Label>
-                    <Input id="height-cm" type="number" value={heightCm} onChange={(e) => setHeightCm(parseFloat(e.target.value) || 0)} />
-                  </div>
-                </TabsContent>
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Weight Unit</Label>
+                <Select value={weightUnit} onValueChange={(v: "kg" | "lb") => setWeightUnit(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kg">kg</SelectItem>
+                    <SelectItem value="lb">lb</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <TabsContent value="imperial" className="pt-4 space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="weight-input" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Weight ({weightUnit})
+                </Label>
+                <Input
+                  id="weight-input"
+                  type="number"
+                  value={weightValue}
+                  onChange={(e) => setWeightValue(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Height Unit</Label>
+                <Select value={heightUnit} onValueChange={(v: "cm" | "ftin") => setHeightUnit(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cm">cm</SelectItem>
+                    <SelectItem value="ftin">ft + in</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {heightUnit === "cm" ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="height-cm" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Height (cm)</Label>
+                  <Input
+                    id="height-cm"
+                    type="number"
+                    value={heightCm}
+                    onChange={(e) => setHeightCm(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="weight-lb" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Weight (lb)</Label>
-                    <Input id="weight-lb" type="number" value={lbs} onChange={(e) => setLbs(parseFloat(e.target.value) || 0)} />
+                    <Label htmlFor="height-ft" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Feet</Label>
+                    <Input
+                      id="height-ft"
+                      type="number"
+                      value={heightFt}
+                      onChange={(e) => setHeightFt(e.target.value)}
+                    />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="height-ft" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Feet</Label>
-                      <Input id="height-ft" type="number" value={ft} onChange={(e) => setFt(parseFloat(e.target.value) || 0)} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="height-in" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Inches</Label>
-                      <Input id="height-in" type="number" value={inches} onChange={(e) => setInches(parseFloat(e.target.value) || 0)} />
-                    </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="height-in" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Inches</Label>
+                    <Input
+                      id="height-in"
+                      type="number"
+                      value={heightInches}
+                      onChange={(e) => setHeightInches(e.target.value)}
+                    />
                   </div>
-                </TabsContent>
-              </Tabs>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -133,16 +233,29 @@ export function BMICalculator() {
                 <Activity className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-bold">Ideal Weight Range</p>
-                  <p className="text-2xl font-bold">{result.idealRange}</p>
+                  <p className="text-2xl font-bold">{idealRangeDisplay}</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Based on your height, this is the recommended weight range for a healthy BMI.
                   </p>
                 </div>
               </div>
 
+              <div className="flex items-start gap-4 p-4 rounded-lg border bg-background">
+                <HeartPulse className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div className="space-y-2">
+                  <p className="text-sm font-bold">Medical Feedback</p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Risk Level: </span>
+                    <span className="text-muted-foreground">{medicalFeedback.riskLevel}</span>
+                  </p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{medicalFeedback.summary}</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{medicalFeedback.guidance}</p>
+                </div>
+              </div>
+
               <div className="flex items-start gap-3 p-3 text-xs text-muted-foreground italic border-t pt-4">
                 <Info className="h-4 w-4 shrink-0" />
-                <p>Note: BMI is a general indicator and does not account for muscle mass or body composition.</p>
+                <p>Note: Adult BMI is a screening tool, not a diagnosis. It may overestimate risk in very muscular people and underestimate risk in some older adults. Use with waist measurement, medical history, and clinician guidance.</p>
               </div>
             </CardContent>
           </Card>

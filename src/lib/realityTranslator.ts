@@ -214,6 +214,25 @@ interface FunTempComparison {
   value: string;
 }
 
+interface FunVelocityUnit {
+  name: string;
+  icon: string;
+  metersPerSecond: number;
+  plural: string;
+}
+
+const funVelocityUnits: FunVelocityUnit[] = [
+  { name: "walking pace", icon: "🚶", metersPerSecond: 1.4, plural: "walking paces" },
+  { name: "jogging speed", icon: "🏃", metersPerSecond: 2.8, plural: "jogging speeds" },
+  { name: "city traffic average", icon: "🚗", metersPerSecond: 13.9, plural: "city traffic averages" },
+  { name: "highway cruising speed", icon: "🛣", metersPerSecond: 27.8, plural: "highway cruising speeds" },
+  { name: "cheetah sprint", icon: "🐆", metersPerSecond: 29, plural: "cheetah sprints" },
+  { name: "Formula 1 race pace", icon: "🏎", metersPerSecond: 83, plural: "Formula 1 race paces" },
+  { name: "commercial jet cruising", icon: "✈", metersPerSecond: 250, plural: "commercial jet cruising speeds" },
+  { name: "speed of sound", icon: "🔊", metersPerSecond: 343, plural: "speeds of sound" },
+  { name: "orbital velocity", icon: "🛰", metersPerSecond: 7800, plural: "orbital velocities" },
+];
+
 export function translateLength(meters: number): RealityComparison[] {
   if (meters <= 0 || !isFinite(meters)) return [];
   const results: RealityComparison[] = [];
@@ -285,7 +304,28 @@ export function translateTemperature(celsius: number): FunTempComparison[] {
   return comparisons;
 }
 
-// Helper: convert unit value to base unit (meters, kg, liters) for fun conversion
+export function translateVelocity(metersPerSecond: number): RealityComparison[] {
+  if (metersPerSecond <= 0 || !isFinite(metersPerSecond)) return [];
+  const results: RealityComparison[] = [];
+
+  for (const unit of funVelocityUnits) {
+    const count = metersPerSecond / unit.metersPerSecond;
+    if (count >= 0.2 && count <= 999999) {
+      results.push({
+        icon: unit.icon,
+        label: unit.name,
+        value: count >= 2
+          ? `${count.toFixed(1)} ${unit.plural}`
+          : `About ${count.toFixed(2)}x ${unit.name}`,
+      });
+    }
+    if (results.length >= 3) break;
+  }
+
+  return results;
+}
+
+// Helper: convert unit value to base unit (meters, kg, liters, m/s) for fun conversion
 export function getBaseValue(value: number, fromUnit: string, category: string): number {
   const lengthToMeters: Record<string, number> = {
     Meters: 1, Kilometers: 1000, Centimeters: 0.01, Millimeters: 0.001,
@@ -298,10 +338,18 @@ export function getBaseValue(value: number, fromUnit: string, category: string):
   const volumeToLiters: Record<string, number> = {
     Liters: 1, Milliliters: 0.001, Gallons: 3.78541, Cups: 0.236588,
   };
+  const velocityToMps: Record<string, number> = {
+    "Meters/second": 1,
+    "Kilometers/hour": 0.2777777778,
+    "Miles/hour": 0.44704,
+    "Feet/second": 0.3048,
+    Knots: 0.5144444444,
+  };
 
   if (category === "Length") return value * (lengthToMeters[fromUnit] || 1);
   if (category === "Weight") return value * (weightToKg[fromUnit] || 1);
   if (category === "Volume") return value * (volumeToLiters[fromUnit] || 1);
+  if (category === "Velocity") return value * (velocityToMps[fromUnit] || 1);
   return value;
 }
 
@@ -318,6 +366,7 @@ export function translateUnit(
     case "Weight": return translateWeight(baseVal);
     case "Volume": return translateVolume(baseVal);
     case "Temperature": return translateTemperature(baseVal);
+    case "Velocity": return translateVelocity(baseVal);
     default: return [];
   }
 }

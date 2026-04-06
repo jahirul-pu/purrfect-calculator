@@ -4,7 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Scale, RefreshCcw, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Scale, RefreshCcw, Sparkles, ArrowLeftRight } from "lucide-react";
 import { units, convert, type Category } from "@/lib/unitConverter";
 import { RealityTranslatorPanel } from "@/components/RealityTranslatorPanel";
 import { translateUnit } from "@/lib/realityTranslator";
@@ -44,6 +45,13 @@ export function UnitConverter() {
     }
   };
 
+  const handleSwapUnits = () => {
+    setFromUnit(toUnit);
+    setToUnit(fromUnit);
+    setFromValue(toValue);
+    setToValue(fromValue);
+  };
+
   // Recalculate when units change
   useEffect(() => {
     const num = parseFloat(fromValue);
@@ -76,7 +84,7 @@ export function UnitConverter() {
         </CardHeader>
         <CardContent>
           <Select value={category} onValueChange={(v: Category) => setCategory(v)}>
-            <SelectTrigger className="w-full h-12 text-lg">
+            <SelectTrigger className="w-full h-10 text-base">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -88,7 +96,7 @@ export function UnitConverter() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-[1fr_auto_1fr] md:items-center">
         <Card className="border-dashed shadow-none">
           <CardContent className="pt-6 space-y-4">
             <div className="grid gap-2">
@@ -110,11 +118,24 @@ export function UnitConverter() {
                 type="number"
                 value={fromValue}
                 onChange={(e) => handleFromChange(e.target.value)}
-                className="h-12 text-xl font-bold font-mono"
+                className="h-10 text-base font-semibold font-mono"
               />
             </div>
           </CardContent>
         </Card>
+
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={handleSwapUnits}
+            className="h-10 w-10 rounded-full"
+            aria-label="Swap from and to units"
+          >
+            <ArrowLeftRight className="h-4 w-4" />
+          </Button>
+        </div>
 
         <Card className="border-dashed shadow-none">
           <CardContent className="pt-6 space-y-4">
@@ -137,7 +158,7 @@ export function UnitConverter() {
                 type="number"
                 value={toValue}
                 onChange={(e) => handleToChange(e.target.value)}
-                className="h-12 text-xl font-bold font-mono bg-muted/30"
+                className="h-10 text-base font-semibold font-mono bg-muted/30"
               />
             </div>
           </CardContent>

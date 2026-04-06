@@ -4,10 +4,14 @@ export interface BMIResult {
   bmi: number;
   category: BMICategory;
   idealRange: string;
+  minIdealKg: number;
+  maxIdealKg: number;
 }
 
 export function calculateBMI(weightKg: number, heightCm: number): BMIResult {
-  if (weightKg <= 0 || heightCm <= 0) return { bmi: 0, category: "Normal", idealRange: "" };
+  if (weightKg <= 0 || heightCm <= 0) {
+    return { bmi: 0, category: "Normal", idealRange: "", minIdealKg: 0, maxIdealKg: 0 };
+  }
 
   const heightM = heightCm / 100;
   const bmi = weightKg / (heightM * heightM);
@@ -25,6 +29,8 @@ export function calculateBMI(weightKg: number, heightCm: number): BMIResult {
     bmi: parseFloat(bmi.toFixed(1)),
     category,
     idealRange: `${minIdeal.toFixed(1)}kg - ${maxIdeal.toFixed(1)}kg`,
+    minIdealKg: minIdeal,
+    maxIdealKg: maxIdeal,
   };
 }
 
