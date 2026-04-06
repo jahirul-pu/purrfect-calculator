@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { InsightBox } from "@/components/InsightBox";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { RealityTranslatorPanel } from "@/components/RealityTranslatorPanel";
@@ -270,10 +270,11 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                     Reality Translator
                   </Label>
                 </div>
-                <Switch
+                <Toggle
                   id="reality-toggle-invest"
-                  checked={showReality}
-                  onCheckedChange={setShowReality}
+                  pressed={showReality}
+                  onPressedChange={setShowReality}
+                  aria-label="Toggle investment reality translator"
                 />
               </div>
 

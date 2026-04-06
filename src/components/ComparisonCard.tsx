@@ -57,16 +57,20 @@ export function ComparisonCard({ evCostPerKm, fuelCostPerKm, distance, setDistan
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg border bg-emerald-500/5 flex flex-col items-center text-center">
-            <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">EV Cost</span>
-            <span className="text-xl font-bold tabular-nums">{formatCurrency(evTotal, currency)}</span>
-            <span className="text-[10px] text-muted-foreground">{formatCurrency(evCostPerKm, currency)}/km</span>
-          </div>
-          <div className="p-4 rounded-lg border bg-rose-500/5 flex flex-col items-center text-center">
-            <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400">Fuel Cost</span>
-            <span className="text-xl font-bold tabular-nums">{formatCurrency(fuelTotal, currency)}</span>
-            <span className="text-[10px] text-muted-foreground">{formatCurrency(fuelCostPerKm, currency)}/km</span>
-          </div>
+          <Card className="bg-emerald-500/5 shadow-none">
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">EV Cost</span>
+              <span className="text-xl font-bold tabular-nums">{formatCurrency(evTotal, currency)}</span>
+              <span className="text-[10px] text-muted-foreground">{formatCurrency(evCostPerKm, currency)}/km</span>
+            </CardContent>
+          </Card>
+          <Card className="bg-rose-500/5 shadow-none">
+            <CardContent className="p-4 flex flex-col items-center text-center">
+              <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400">Fuel Cost</span>
+              <span className="text-xl font-bold tabular-nums">{formatCurrency(fuelTotal, currency)}</span>
+              <span className="text-[10px] text-muted-foreground">{formatCurrency(fuelCostPerKm, currency)}/km</span>
+            </CardContent>
+          </Card>
         </div>
 
         <div className={cn(

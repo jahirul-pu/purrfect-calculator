@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MapPin, Target, Zap, Fuel, RefreshCw, LocateFixed, AlertTriangle } from "lucide-react";
@@ -257,10 +257,11 @@ export function RangeMap({ rangeKm: initialRange, vehicleType: initialType }: Ra
             <div className="space-y-3 pt-2 border-t">
               <div className="flex items-center justify-between">
                 <Label htmlFor="map-mode" className="text-xs font-bold uppercase cursor-pointer">Isochrone Mode</Label>
-                <Switch 
+                <Toggle 
                   id="map-mode" 
-                  checked={useIsochrone} 
-                  onCheckedChange={setUseIsochrone} 
+                  pressed={useIsochrone} 
+                  onPressedChange={setUseIsochrone} 
+                  aria-label="Toggle isochrone mode"
                 />
               </div>
               <p className="text-[10px] text-muted-foreground italic">

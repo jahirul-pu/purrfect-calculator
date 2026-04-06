@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Orbit } from "lucide-react";
 
 type WeightUnit = "kg" | "lb";
@@ -88,14 +88,16 @@ function GravitySection({
         {visibleBodies.map((body) => {
           const bodyWeight = earthWeight * body.gravityRelativeToEarth;
           return (
-            <div key={body.name} className="rounded-lg border bg-muted/20 p-3 space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold">{body.name}</p>
-                <span className="text-base" aria-hidden="true">{body.emoji}</span>
-              </div>
-              <p className="text-xl font-bold">{formatWeight(bodyWeight)} {unit}</p>
-              <p className="text-xs text-muted-foreground">{body.gravityRelativeToEarth.toFixed(3)} x Earth gravity</p>
-            </div>
+            <Card key={body.name} className="bg-muted/20 shadow-none">
+              <CardContent className="p-3 space-y-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold">{body.name}</p>
+                  <span className="text-base" aria-hidden="true">{body.emoji}</span>
+                </div>
+                <p className="text-xl font-bold">{formatWeight(bodyWeight)} {unit}</p>
+                <p className="text-xs text-muted-foreground">{body.gravityRelativeToEarth.toFixed(3)} x Earth gravity</p>
+              </CardContent>
+            </Card>
           );
         })}
       </CardContent>
@@ -173,16 +175,19 @@ export function SpaceWeightCalculator() {
             </div>
 
             <div className="flex items-end">
-              <div className="flex w-full items-center justify-between rounded-lg border p-3">
-                <Label htmlFor="dwarf-toggle" className="text-xs font-bold uppercase tracking-wider text-muted-foreground cursor-pointer">
-                  Include Dwarf Planets
-                </Label>
-                <Switch
-                  id="dwarf-toggle"
-                  checked={includeDwarfPlanets}
-                  onCheckedChange={setIncludeDwarfPlanets}
-                />
-              </div>
+              <Card className="w-full shadow-none">
+                <CardContent className="p-3 flex items-center justify-between">
+                  <Label htmlFor="dwarf-toggle" className="text-xs font-bold uppercase tracking-wider text-muted-foreground cursor-pointer">
+                    Include Dwarf Planets
+                  </Label>
+                  <Toggle
+                    id="dwarf-toggle"
+                    pressed={includeDwarfPlanets}
+                    onPressedChange={setIncludeDwarfPlanets}
+                    aria-label="Toggle dwarf planets"
+                  />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </CardContent>

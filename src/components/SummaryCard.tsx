@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Zap, AlertTriangle, Telescope } from "lucide-react";
 import { formatCurrency, currencies } from "@/lib/currency";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
@@ -103,10 +103,11 @@ export function SummaryCard({
                   Reality Translator
                 </Label>
               </div>
-              <Switch
+              <Toggle
                 id="reality-toggle-power"
-                checked={showReality}
-                onCheckedChange={setShowReality}
+                pressed={showReality}
+                onPressedChange={setShowReality}
+                aria-label="Toggle power reality translator"
               />
             </div>
 

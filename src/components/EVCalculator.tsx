@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Battery } from "lucide-react";
 
@@ -120,7 +120,7 @@ export function EVCalculator({
                   <Label className="text-sm font-bold">Air Conditioning</Label>
                   <p className="text-xs text-muted-foreground">Factor in HVAC energy consumption</p>
                 </div>
-                <Switch checked={evAcOn} onCheckedChange={setEvAcOn} />
+                <Toggle pressed={evAcOn} onPressedChange={setEvAcOn} aria-label="Toggle EV air conditioning" />
               </div>
             </>
           )}

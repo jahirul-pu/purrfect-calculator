@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Slider } from "@/components/ui/slider";
 import { InsightBox } from "@/components/InsightBox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -155,7 +155,7 @@ export function DPSCalculator() {
                 </p>
               </div>
             </div>
-            <Switch id="dps-tax-toggle" checked={isTinLinked} onCheckedChange={setIsTinLinked} />
+            <Toggle id="dps-tax-toggle" pressed={isTinLinked} onPressedChange={setIsTinLinked} aria-label="Toggle DPS tax status" />
           </div>
 
           {/* Calculate Button */}

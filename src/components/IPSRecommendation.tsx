@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Zap, Sun, Info } from "lucide-react";
 import { calculateIPS, calculateBattery, selectVoltage } from "@/lib/ipsCalculator";
@@ -68,7 +68,7 @@ export function IPSRecommendation({ totalLoadWatts, totalDailyKwh }: IPSRecommen
                 <Label className="text-sm font-bold">Solar Charging</Label>
                 <p className="text-xs text-muted-foreground">Calculate panel requirements</p>
               </div>
-              <Switch checked={isSolarEnabled} onCheckedChange={setIsSolarEnabled} />
+              <Toggle pressed={isSolarEnabled} onPressedChange={setIsSolarEnabled} aria-label="Toggle solar charging" />
             </div>
 
             {isSolarEnabled && (

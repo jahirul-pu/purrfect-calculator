@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Slider } from "@/components/ui/slider";
 import { InsightBox } from "@/components/InsightBox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -153,7 +153,7 @@ export function FDRCalculator() {
                   </p>
                 </div>
               </div>
-              <Switch id="fdr-tax-toggle" checked={isTinLinked} onCheckedChange={setIsTinLinked} />
+              <Toggle id="fdr-tax-toggle" pressed={isTinLinked} onPressedChange={setIsTinLinked} aria-label="Toggle FDR tax status" />
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
@@ -166,7 +166,7 @@ export function FDRCalculator() {
                   </p>
                 </div>
               </div>
-              <Switch id="fdr-renew-toggle" checked={autoRenew} onCheckedChange={setAutoRenew} />
+              <Toggle id="fdr-renew-toggle" pressed={autoRenew} onPressedChange={setAutoRenew} aria-label="Toggle FDR auto renew" />
             </div>
           </div>
 

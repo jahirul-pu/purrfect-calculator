@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { currencies } from "@/lib/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalculatorProvider } from "@/context/CalculatorContext";
-import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { Label } from "@/components/ui/label";
 
 const THEME_STORAGE_KEY = "calculator-theme";
@@ -60,10 +60,10 @@ function App() {
                 <div className="flex items-center gap-2">
                   {isDarkMode ? <Moon className="h-4 w-4 text-muted-foreground" /> : <Sun className="h-4 w-4 text-muted-foreground" />}
                   <Label htmlFor="desktop-theme-toggle" className="text-xs text-muted-foreground">Dark</Label>
-                  <Switch
+                  <Toggle
                     id="desktop-theme-toggle"
-                    checked={isDarkMode}
-                    onCheckedChange={setIsDarkMode}
+                    pressed={isDarkMode}
+                    onPressedChange={setIsDarkMode}
                     aria-label="Toggle dark mode"
                   />
                 </div>
@@ -97,10 +97,10 @@ function App() {
                   {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                   <Label htmlFor="mobile-theme-toggle">Dark mode</Label>
                 </div>
-                <Switch
+                <Toggle
                   id="mobile-theme-toggle"
-                  checked={isDarkMode}
-                  onCheckedChange={setIsDarkMode}
+                  pressed={isDarkMode}
+                  onPressedChange={setIsDarkMode}
                   aria-label="Toggle dark mode"
                 />
               </div>
