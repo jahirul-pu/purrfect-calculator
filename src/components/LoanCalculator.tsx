@@ -3,11 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { InsightBox } from "@/components/InsightBox";
-import { Banknote, Percent, Wallet, ReceiptText, PieChart as PieChartIcon } from "lucide-react";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { RealityTranslatorPanel } from "@/components/RealityTranslatorPanel";
+import { PowerLevelMilestoneCard } from "@/components/PowerLevelMilestone";
+import { Banknote, Percent, Wallet, ReceiptText, PieChart as PieChartIcon, Telescope } from "lucide-react";
 import { calculateLoan } from "@/lib/loanCalc";
 import { getLoanInsight } from "@/lib/insights";
-import { formatCurrency, currencies } from "@/lib/currency";
+import { formatCurrency, currencies, convertCurrency } from "@/lib/currency";
+import { translateFinancialAmount } from "@/lib/realityTranslator";
 import {
   AreaChart,
   Area,
@@ -71,6 +76,7 @@ export function LoanCalculator({ currency }: { currency: string }) {
   const [rate, setRate] = useState<number>(8);
   const [years, setYears] = useState<number>(5);
   const [months, setMonths] = useState<number>(0);
+  const [showReality, setShowReality] = useState(false);
 
   const totalMonths = years * 12 + months;
   const result = useMemo(
@@ -86,6 +92,27 @@ export function LoanCalculator({ currency }: { currency: string }) {
   const chartData = useMemo(
     () => generateAmortizationData(amount, rate, totalMonths),
     [amount, rate, totalMonths]
+  );
+
+  // Convert interest to USD for reality translator
+  const interestInUSD = useMemo(
+    () => convertCurrency(result.totalInterest, currency, "USD"),
+    [result.totalInterest, currency]
+  );
+
+  const yearlyInterestInUSD = useMemo(
+    () => years > 0 ? interestInUSD / years : 0,
+    [interestInUSD, years]
+  );
+
+  const interestComparisons = useMemo(
+    () => translateFinancialAmount(yearlyInterestInUSD),
+    [yearlyInterestInUSD]
+  );
+
+  const totalInterestComparisons = useMemo(
+    () => translateFinancialAmount(interestInUSD),
+    [interestInUSD]
   );
 
   return (
@@ -199,7 +226,12 @@ export function LoanCalculator({ currency }: { currency: string }) {
                   Estimated Monthly Payment
                 </p>
                 <p className="text-5xl font-black tabular-nums">
-                  {formatCurrency(result.monthlyPayment, currency)}
+                  <AnimatedNumber
+                    value={result.monthlyPayment}
+                    prefix={symbol + " "}
+                    decimals={2}
+                    duration={600}
+                  />
                 </p>
               </div>
             </CardContent>
@@ -217,7 +249,12 @@ export function LoanCalculator({ currency }: { currency: string }) {
                     Total Payment
                   </p>
                   <p className="text-xl font-bold tabular-nums">
-                    {formatCurrency(result.totalPayment, currency)}
+                    <AnimatedNumber
+                      value={result.totalPayment}
+                      prefix={symbol + " "}
+                      decimals={2}
+                      duration={700}
+                    />
                   </p>
                 </div>
               </CardContent>
@@ -233,12 +270,56 @@ export function LoanCalculator({ currency }: { currency: string }) {
                     Total Interest
                   </p>
                   <p className="text-xl font-bold tabular-nums">
-                    {formatCurrency(result.totalInterest, currency)}
+                    <AnimatedNumber
+                      value={result.totalInterest}
+                      prefix={symbol + " "}
+                      decimals={2}
+                      duration={700}
+                    />
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Reality Translator Toggle */}
+          {result.totalInterest > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20 fun-units-toggle">
+                <div className="flex items-center gap-2">
+                  <Telescope className="h-4 w-4 text-violet-600" />
+                  <Label htmlFor="reality-toggle-loan" className="text-xs font-bold cursor-pointer">
+                    Reality Translator
+                  </Label>
+                </div>
+                <Switch
+                  id="reality-toggle-loan"
+                  checked={showReality}
+                  onCheckedChange={setShowReality}
+                />
+              </div>
+
+              {showReality && (
+                <div className="space-y-3">
+                  {interestComparisons.length > 0 && (
+                    <RealityTranslatorPanel
+                      comparisons={interestComparisons}
+                      title="Yearly Interest Could Buy..."
+                    />
+                  )}
+                  {totalInterestComparisons.length > 0 && (
+                    <RealityTranslatorPanel
+                      comparisons={totalInterestComparisons}
+                      title="Total Interest Could Buy..."
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Power Level Milestone */}
+          <PowerLevelMilestoneCard amount={result.totalPayment} />
 
           {/* Amortization Chart */}
           {chartData.length > 0 && (

@@ -8,8 +8,9 @@ import { LoanCalculator } from "@/components/LoanCalculator";
 import { InvestmentCalculator } from "@/components/InvestmentCalculator";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { RangeMap } from "@/components/RangeMap";
+import { PercentageCalculator } from "@/components/PercentageCalculator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon, Landmark } from "lucide-react";
+import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon, Landmark, Percent } from "lucide-react";
 import { useState } from "react";
 import { currencies } from "@/lib/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -70,7 +71,7 @@ function App() {
           </header>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-10">
-            <TabsList className="inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-5 lg:grid-cols-10">
+            <TabsList className="inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-5 lg:grid-cols-11">
               <TabsTrigger value="power" className="flex items-center gap-2 py-3 px-4">
                 <Zap className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Power</span>
               </TabsTrigger>
@@ -85,6 +86,9 @@ function App() {
               </TabsTrigger>
               <TabsTrigger value="bmi" className="flex items-center gap-2 py-3 px-4">
                 <Activity className="h-4 w-4" /> <span className="hidden sm:inline font-bold">BMI</span>
+              </TabsTrigger>
+              <TabsTrigger value="percent" className="flex items-center gap-2 py-3 px-4">
+                <Percent className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Percent</span>
               </TabsTrigger>
               <TabsTrigger value="loan" className="flex items-center gap-2 py-3 px-4">
                 <Banknote className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Loan</span>
@@ -124,6 +128,9 @@ function App() {
               </TabsContent>
               <TabsContent value="bmi" className="mt-0 focus-visible:outline-none">
                 <BMICalculator />
+              </TabsContent>
+              <TabsContent value="percent" className="mt-0 focus-visible:outline-none">
+                <PercentageCalculator />
               </TabsContent>
               <TabsContent value="loan" className="mt-0 focus-visible:outline-none">
                 <LoanCalculator currency={currency} />

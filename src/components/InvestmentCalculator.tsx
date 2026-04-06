@@ -3,11 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { InsightBox } from "@/components/InsightBox";
-import { TrendingUp, Wallet, ArrowUpRight, Percent } from "lucide-react";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { RealityTranslatorPanel } from "@/components/RealityTranslatorPanel";
+import { PowerLevelMilestoneCard } from "@/components/PowerLevelMilestone";
+import { TrendingUp, Wallet, ArrowUpRight, Telescope } from "lucide-react";
 import { calculateCompoundInterest } from "@/lib/investmentCalc";
 import { getInvestmentInsight } from "@/lib/insights";
-import { formatCurrency, currencies } from "@/lib/currency";
+import { formatCurrency, currencies, convertCurrency } from "@/lib/currency";
+import { translateFinancialAmount } from "@/lib/realityTranslator";
 import { useCalculatorContext } from "@/context/CalculatorContext";
 import {
   AreaChart,
@@ -24,6 +29,7 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
   const [monthlyContribution, setMonthlyContribution] = useState<number>(0);
   const [annualRate, setAnnualRate] = useState<number>(8);
   const [years, setYears] = useState<number>(10);
+  const [showReality, setShowReality] = useState(false);
 
   const ctx = useCalculatorContext();
 
@@ -79,6 +85,27 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
     [results]
   );
 
+  // Reality Translator: convert balance & interest to USD equivalents
+  const balanceInUSD = useMemo(
+    () => convertCurrency(finale.balance, currency, "USD"),
+    [finale.balance, currency]
+  );
+
+  const interestInUSD = useMemo(
+    () => convertCurrency(finale.totalInterest, currency, "USD"),
+    [finale.totalInterest, currency]
+  );
+
+  const balanceComparisons = useMemo(
+    () => translateFinancialAmount(balanceInUSD),
+    [balanceInUSD]
+  );
+
+  const interestComparisons = useMemo(
+    () => translateFinancialAmount(interestInUSD),
+    [interestInUSD]
+  );
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700">
       <div className="flex flex-col gap-2">
@@ -120,7 +147,7 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                     Monthly Contribution ({symbol})
                   </Label>
                   <span className="text-sm font-black tabular-nums text-primary">
-                    {formatCurrency(monthlyContribution, currency)}
+                    <AnimatedNumber value={monthlyContribution} prefix={symbol + " "} duration={400} />
                   </span>
                 </div>
                 <Slider
@@ -192,20 +219,71 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
             </CardHeader>
             <CardContent className="text-center space-y-2 pb-8">
               <p className="text-5xl font-black text-primary animate-in zoom-in-50 duration-500 tabular-nums">
-                {formatCurrency(finale.balance, currency)}
+                <AnimatedNumber
+                  value={finale.balance}
+                  prefix={symbol + " "}
+                  decimals={0}
+                  duration={800}
+                  goldThreshold={(() => {
+                    // Convert 1M USD to local currency for threshold
+                    const localThreshold = convertCurrency(1_000_000, "USD", currency);
+                    return localThreshold;
+                  })()}
+                />
               </p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold">
                 <TrendingUp className="h-3 w-3" />
-                {finale.totalContribution > 0
-                  ? (
-                      (finale.balance / finale.totalContribution - 1) *
-                      100
-                    ).toFixed(1)
-                  : 0}
-                % Total Growth
+                <AnimatedNumber
+                  value={finale.totalContribution > 0
+                    ? (finale.balance / finale.totalContribution - 1) * 100
+                    : 0}
+                  decimals={1}
+                  duration={600}
+                  suffix="%"
+                />
+                {" "}Total Growth
               </div>
             </CardContent>
           </Card>
+
+          {/* Power Level Milestone Easter Egg */}
+          <PowerLevelMilestoneCard amount={balanceInUSD} />
+
+          {/* Reality Translator Toggle */}
+          {finale.balance > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/20 fun-units-toggle">
+                <div className="flex items-center gap-2">
+                  <Telescope className="h-4 w-4 text-violet-600" />
+                  <Label htmlFor="reality-toggle-invest" className="text-xs font-bold cursor-pointer">
+                    Reality Translator
+                  </Label>
+                </div>
+                <Switch
+                  id="reality-toggle-invest"
+                  checked={showReality}
+                  onCheckedChange={setShowReality}
+                />
+              </div>
+
+              {showReality && (
+                <div className="space-y-3">
+                  {balanceComparisons.length > 0 && (
+                    <RealityTranslatorPanel
+                      comparisons={balanceComparisons}
+                      title="Your Balance Could Buy..."
+                    />
+                  )}
+                  {interestComparisons.length > 0 && (
+                    <RealityTranslatorPanel
+                      comparisons={interestComparisons}
+                      title="Interest Alone Could Buy..."
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Insight */}
           <InsightBox insight={insight} />
@@ -219,7 +297,7 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                   Total Invested
                 </p>
                 <p className="text-2xl font-bold tabular-nums">
-                  {formatCurrency(finale.totalContribution, currency)}
+                  <AnimatedNumber value={finale.totalContribution} prefix={symbol + " "} duration={700} />
                 </p>
               </CardContent>
             </Card>
@@ -229,7 +307,7 @@ export function InvestmentCalculator({ currency }: { currency: string }) {
                   Total Interest
                 </p>
                 <p className="text-2xl font-bold text-emerald-600 tabular-nums">
-                  {formatCurrency(finale.totalInterest, currency)}
+                  <AnimatedNumber value={finale.totalInterest} prefix={symbol + " "} duration={700} />
                 </p>
               </CardContent>
             </Card>

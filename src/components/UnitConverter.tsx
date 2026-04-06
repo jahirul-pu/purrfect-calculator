@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Scale, RefreshCcw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Scale, RefreshCcw, Sparkles } from "lucide-react";
 import { units, convert, type Category } from "@/lib/unitConverter";
+import { RealityTranslatorPanel } from "@/components/RealityTranslatorPanel";
+import { translateUnit } from "@/lib/realityTranslator";
 
 export function UnitConverter() {
   const [category, setCategory] = useState<Category>("Length");
@@ -12,6 +15,7 @@ export function UnitConverter() {
   const [toUnit, setToUnit] = useState<string>("");
   const [fromValue, setFromValue] = useState<string>("");
   const [toValue, setToValue] = useState<string>("");
+  const [funUnitsEnabled, setFunUnitsEnabled] = useState(false);
 
   useEffect(() => {
     setFromUnit(units[category][0]);
@@ -48,6 +52,13 @@ export function UnitConverter() {
       setToValue(result.toString());
     }
   }, [fromUnit, toUnit]);
+
+  // Fun units comparisons
+  const funComparisons = useMemo(() => {
+    const num = parseFloat(fromValue);
+    if (isNaN(num) || num <= 0) return [];
+    return translateUnit(num, fromUnit, category);
+  }, [fromValue, fromUnit, category]);
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500">
@@ -95,9 +106,9 @@ export function UnitConverter() {
             </div>
             <div className="grid gap-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Value</Label>
-              <Input 
-                type="number" 
-                value={fromValue} 
+              <Input
+                type="number"
+                value={fromValue}
                 onChange={(e) => handleFromChange(e.target.value)}
                 className="h-12 text-xl font-bold font-mono"
               />
@@ -122,9 +133,9 @@ export function UnitConverter() {
             </div>
             <div className="grid gap-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Converted Result</Label>
-              <Input 
-                type="number" 
-                value={toValue} 
+              <Input
+                type="number"
+                value={toValue}
                 onChange={(e) => handleToChange(e.target.value)}
                 className="h-12 text-xl font-bold font-mono bg-muted/30"
               />
@@ -137,6 +148,39 @@ export function UnitConverter() {
         <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest bg-muted px-4 py-2 rounded-full">
           <RefreshCcw className="h-3 w-3" /> Bidirectional Conversion Active
         </div>
+      </div>
+
+      {/* Fun Units Toggle */}
+      <div className="space-y-3">
+        <div className={`flex items-center justify-between p-3 rounded-lg border fun-units-toggle ${funUnitsEnabled ? "active" : "bg-muted/20"}`}>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-violet-600" />
+            <Label htmlFor="fun-units-toggle" className="text-xs font-bold cursor-pointer">
+              Fun Units Mode
+            </Label>
+            <span className="text-[10px] text-muted-foreground font-medium ml-1 hidden sm:inline">
+              (bananas, blue whales, football fields...)
+            </span>
+          </div>
+          <Switch
+            id="fun-units-toggle"
+            checked={funUnitsEnabled}
+            onCheckedChange={setFunUnitsEnabled}
+          />
+        </div>
+
+        {funUnitsEnabled && funComparisons.length > 0 && (
+          <RealityTranslatorPanel
+            comparisons={funComparisons}
+            title={`In Fun ${category} Units...`}
+          />
+        )}
+
+        {funUnitsEnabled && funComparisons.length === 0 && fromValue && parseFloat(fromValue) > 0 && (
+          <div className="text-center p-4 rounded-lg border border-dashed text-sm text-muted-foreground">
+            Enter a value to see fun unit comparisons!
+          </div>
+        )}
       </div>
     </div>
   );
