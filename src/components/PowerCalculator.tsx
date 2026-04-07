@@ -41,25 +41,22 @@ export function PowerCalculator({ currency }: { currency: string }) {
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Power Consumption</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">Power Consumption</h1>
         <p className="text-muted-foreground">Calculate appliance loads and IPS/Solar requirements.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Input Column */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-6 space-y-6">
           <div className="bg-card rounded-lg border shadow-sm">
-            <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
-              <h2 className="text-sm font-bold flex items-center gap-2">
+            <div className="p-4 border-b bg-muted/30 flex items-center">
+              <h2 className="text-base font-semibold flex items-center gap-2">
                 <PlusCircle className="h-4 w-4" /> Connected Devices
               </h2>
-              <Button onClick={addDevice} variant="outline" size="sm" className="h-8 gap-1">
-                <PlusCircle className="h-3.5 w-3.5" /> Add Device
-              </Button>
             </div>
             
-            <div className="divide-y">
+            <div className="space-y-4 p-4 sm:p-6">
               {devices.map((device) => (
                 <DeviceRow
                   key={device.id}
@@ -72,16 +69,22 @@ export function PowerCalculator({ currency }: { currency: string }) {
             
             {devices.length === 0 && (
               <div className="p-12 text-center text-muted-foreground italic">
-                No devices added yet. Click "Add Device" to start.
+                No devices added yet. Click "+ Add Another Appliance" to start.
               </div>
             )}
+
+            <div className="border-t p-4 bg-muted/20">
+              <Button onClick={addDevice} variant="outline" className="w-full h-11 justify-center gap-2 font-semibold">
+                <PlusCircle className="h-4 w-4" /> + Add Another Appliance
+              </Button>
+            </div>
           </div>
 
           <IPSRecommendation totalLoadWatts={totalLoad} totalDailyKwh={dailyKWh} />
         </div>
 
         {/* Summary Column */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-6">
           <SummaryCard
             totalLoad={totalLoad}
             dailyKWh={dailyKWh}

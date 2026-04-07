@@ -29,6 +29,7 @@ export function AnimatedNumber({
   const [isAnimating, setIsAnimating] = useState(false);
   const [isGold, setIsGold] = useState(false);
   const previousValue = useRef(value);
+  const hasMounted = useRef(false);
   const animationRef = useRef<number | null>(null);
 
   const animate = useCallback(
@@ -62,6 +63,15 @@ export function AnimatedNumber({
   );
 
   useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      if (value !== 0) {
+        animate(0, value);
+      }
+      previousValue.current = value;
+      return;
+    }
+
     if (value !== previousValue.current) {
       animate(previousValue.current, value);
       previousValue.current = value;

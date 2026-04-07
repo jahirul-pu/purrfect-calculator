@@ -6,12 +6,13 @@ import { UnitConverter } from "@/components/UnitConverter";
 import { BMICalculator } from "@/components/BMICalculator";
 import { LoanCalculator } from "@/components/LoanCalculator";
 import { InvestmentCalculator } from "@/components/InvestmentCalculator";
+import { BatteryPackCalculator } from "@/components/BatteryPackCalculator";
 import { CurrencyConverter } from "@/components/CurrencyConverter";
 import { RangeMap } from "@/components/RangeMap";
 import { PercentageCalculator } from "@/components/PercentageCalculator";
 import { SpaceWeightCalculator } from "@/components/SpaceWeightCalculator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, RefreshCw, Map as MapIcon, Landmark, Percent, Moon, Sun, Orbit } from "lucide-react";
+import { Zap, CarFront, CalendarDays, Scale, Activity, Banknote, Globe, TrendingUp, Map as MapIcon, Percent, Moon, Sun, Orbit, Battery, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { currencies } from "@/lib/currency";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +21,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { Label } from "@/components/ui/label";
 
 const THEME_STORAGE_KEY = "calculator-theme";
+type TabGroup = "energy" | "mobility" | "finance" | "tools";
 
 function App() {
   const [currency, setCurrency] = useState("USD");
@@ -27,6 +29,12 @@ function App() {
   const [mapVehicleType, setMapVehicleType] = useState<"EV" | "Fuel">("EV");
   const [activeTab, setActiveTab] = useState("power");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<TabGroup, boolean>>({
+    energy: false,
+    mobility: false,
+    finance: false,
+    tools: false,
+  });
 
   const activeCurrency = currencies.find(c => c.code === currency) || currencies[0];
 
@@ -49,6 +57,13 @@ function App() {
     document.documentElement.classList.toggle("dark", isDarkMode);
     localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
+
+  const toggleGroup = (group: TabGroup) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [group]: !prev[group],
+    }));
+  };
 
   return (
     <CalculatorProvider activeMainTab={activeTab} setActiveMainTab={setActiveTab}>
@@ -121,47 +136,89 @@ function App() {
             </p>
           </header>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-10">
-            <TabsList className="sticky top-[88px] z-30 inline-flex h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 sm:grid sm:grid-cols-5 lg:grid-cols-12">
-              <TabsTrigger value="power" className="flex items-center gap-2 py-3 px-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-10 lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8 lg:space-y-0">
+            <TabsList className="sticky top-[88px] z-30 h-auto w-full flex-wrap items-center justify-center gap-1 rounded-xl bg-muted p-1 lg:h-fit lg:self-start lg:flex lg:flex-col lg:items-stretch lg:justify-start lg:border lg:border-primary/20 lg:bg-gradient-to-b lg:from-primary/[0.10] lg:to-background lg:p-2 lg:[&>button]:w-full lg:[&>button]:justify-start lg:[&>[role=tab]]:relative lg:[&>[role=tab]]:rounded-xl lg:[&>[role=tab]]:border lg:[&>[role=tab]]:border-transparent lg:[&>[role=tab]]:bg-transparent lg:[&>[role=tab]]:text-muted-foreground lg:[&>[role=tab]:hover]:border-primary/25 lg:[&>[role=tab]:hover]:bg-primary/[0.08] lg:[&>[role=tab]:hover]:text-foreground lg:[&>[role=tab][data-state=active]]:border-primary/35 lg:[&>[role=tab][data-state=active]]:bg-primary/[0.16] lg:[&>[role=tab][data-state=active]]:text-primary lg:[&>[role=tab][data-state=active]]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]">
+              <button
+                type="button"
+                className="hidden lg:flex items-center gap-2 rounded-md px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground/80 transition-colors hover:bg-primary/[0.08] hover:text-primary"
+                onClick={() => toggleGroup("energy")}
+                aria-expanded={!collapsedGroups.energy}
+              >
+                <Zap className="h-3.5 w-3.5" /> Energy
+                <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform ${collapsedGroups.energy ? "-rotate-90" : "rotate-0"}`} />
+              </button>
+              <TabsTrigger value="power" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.energy ? "lg:hidden" : ""}`}>
                 <Zap className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Power</span>
               </TabsTrigger>
-              <TabsTrigger value="vehicle" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="batteryPack" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.energy ? "lg:hidden" : ""}`}>
+                <Battery className="h-4 w-4 shrink-0" strokeWidth={2.25} /> <span className="hidden sm:inline font-bold">Battery Pack</span>
+              </TabsTrigger>
+
+              <button
+                type="button"
+                className="hidden lg:flex mt-2 items-center gap-2 rounded-md px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground/80 transition-colors hover:bg-primary/[0.08] hover:text-primary"
+                onClick={() => toggleGroup("mobility")}
+                aria-expanded={!collapsedGroups.mobility}
+              >
+                <CarFront className="h-3.5 w-3.5" /> Mobility
+                <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform ${collapsedGroups.mobility ? "-rotate-90" : "rotate-0"}`} />
+              </button>
+              <TabsTrigger value="vehicle" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.mobility ? "lg:hidden" : ""}`}>
                 <CarFront className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Vehicle</span>
               </TabsTrigger>
-              <TabsTrigger value="age" className="flex items-center gap-2 py-3 px-4">
-                <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Age</span>
-              </TabsTrigger>
-              <TabsTrigger value="unit" className="flex items-center gap-2 py-3 px-4">
-                <Scale className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Unit</span>
-              </TabsTrigger>
-              <TabsTrigger value="bmi" className="flex items-center gap-2 py-3 px-4">
-                <Activity className="h-4 w-4" /> <span className="hidden sm:inline font-bold">BMI</span>
-              </TabsTrigger>
-              <TabsTrigger value="percent" className="flex items-center gap-2 py-3 px-4">
-                <Percent className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Percent</span>
-              </TabsTrigger>
-              <TabsTrigger value="loan" className="flex items-center gap-2 py-3 px-4">
-                <Banknote className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Loan</span>
-              </TabsTrigger>
-              <TabsTrigger value="invest" className="flex items-center gap-2 py-3 px-4">
-                <TrendingUp className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Invest</span>
-              </TabsTrigger>
-              <TabsTrigger value="curr" className="flex items-center gap-2 py-3 px-4">
-                <RefreshCw className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Currency</span>
-              </TabsTrigger>
-              <TabsTrigger value="map" className="flex items-center gap-2 py-3 px-4">
+              <TabsTrigger value="map" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.mobility ? "lg:hidden" : ""}`}>
                 <MapIcon className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Map</span>
               </TabsTrigger>
-              <TabsTrigger value="space" className="flex items-center gap-2 py-3 px-4">
-                <Orbit className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Space</span>
+
+              <button
+                type="button"
+                className="hidden lg:flex mt-2 items-center gap-2 rounded-md px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground/80 transition-colors hover:bg-primary/[0.08] hover:text-primary"
+                onClick={() => toggleGroup("finance")}
+                aria-expanded={!collapsedGroups.finance}
+              >
+                <Banknote className="h-3.5 w-3.5" /> Finance
+                <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform ${collapsedGroups.finance ? "-rotate-90" : "rotate-0"}`} />
+              </button>
+              <TabsTrigger value="loan" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.finance ? "lg:hidden" : ""}`}>
+                <Banknote className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Loan</span>
               </TabsTrigger>
-              <TabsTrigger value="banking" className="flex items-center gap-2 py-3 px-4">
-                <Landmark className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Banking</span>
+              <TabsTrigger value="invest" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.finance ? "lg:hidden" : ""}`}>
+                <TrendingUp className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Invest</span>
+              </TabsTrigger>
+              <TabsTrigger value="curr" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.finance ? "lg:hidden" : ""}`}>
+                <Globe className="h-4 w-4 shrink-0" strokeWidth={2.25} /> <span className="hidden sm:inline font-bold">Currency</span>
+              </TabsTrigger>
+              <TabsTrigger value="banking" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.finance ? "lg:hidden" : ""}`}>
+                <Banknote className="h-4 w-4 shrink-0" strokeWidth={2.25} /> <span className="hidden sm:inline font-bold">Banking</span>
+              </TabsTrigger>
+
+              <button
+                type="button"
+                className="hidden lg:flex mt-2 items-center gap-2 rounded-md px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground/80 transition-colors hover:bg-primary/[0.08] hover:text-primary"
+                onClick={() => toggleGroup("tools")}
+                aria-expanded={!collapsedGroups.tools}
+              >
+                <Scale className="h-3.5 w-3.5" /> Tools
+                <ChevronDown className={`ml-auto h-3.5 w-3.5 transition-transform ${collapsedGroups.tools ? "-rotate-90" : "rotate-0"}`} />
+              </button>
+              <TabsTrigger value="bmi" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.tools ? "lg:hidden" : ""}`}>
+                <Activity className="h-4 w-4" /> <span className="hidden sm:inline font-bold">BMI</span>
+              </TabsTrigger>
+              <TabsTrigger value="age" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.tools ? "lg:hidden" : ""}`}>
+                <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Age</span>
+              </TabsTrigger>
+              <TabsTrigger value="percent" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.tools ? "lg:hidden" : ""}`}>
+                <Percent className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Percent</span>
+              </TabsTrigger>
+              <TabsTrigger value="unit" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.tools ? "lg:hidden" : ""}`}>
+                <Scale className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Unit</span>
+              </TabsTrigger>
+              <TabsTrigger value="space" className={`flex items-center gap-2 py-3 px-4 ${collapsedGroups.tools ? "lg:hidden" : ""}`}>
+                <Orbit className="h-4 w-4" /> <span className="hidden sm:inline font-bold">Space</span>
               </TabsTrigger>
             </TabsList>
             
-            <div className="mt-8 transition-all duration-300">
+            <div className="mt-8 min-w-0 transition-all duration-300 lg:mt-0">
               <TabsContent value="power" className="mt-0 focus-visible:outline-none">
                 <PowerCalculator currency={currency} />
               </TabsContent>
@@ -203,6 +260,9 @@ function App() {
               </TabsContent>
               <TabsContent value="banking" className="mt-0 focus-visible:outline-none">
                 <BankingCalculator />
+              </TabsContent>
+              <TabsContent value="batteryPack" className="mt-0 focus-visible:outline-none">
+                <BatteryPackCalculator />
               </TabsContent>
             </div>
           </Tabs>
