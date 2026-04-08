@@ -409,7 +409,7 @@ export function getBaseValue(value: number, fromUnit: string, category: string):
   };
   const weightToKg: Record<string, number> = {
     Kilograms: 1, Grams: 0.001, Milligrams: 0.000001,
-    Pounds: 0.453592, Ounces: 0.0283495,
+    Pounds: 0.453592, Ounces: 0.0283495, Tons: 1000,
   };
   const volumeToLiters: Record<string, number> = {
     Liters: 1, Milliliters: 0.001, Gallons: 3.78541, Cups: 0.236588,
@@ -421,11 +421,20 @@ export function getBaseValue(value: number, fromUnit: string, category: string):
     "Feet/second": 0.3048,
     Knots: 0.5144444444,
   };
+  const energyToJoules: Record<string, number> = {
+    Joules: 1,
+    Kilojoules: 1000,
+    "Watt-hours": 3600,
+    "Kilowatt-hours": 3600000,
+    Calories: 4184,
+    BTU: 1055.06,
+  };
 
   if (category === "Length") return value * (lengthToMeters[fromUnit] || 1);
   if (category === "Weight") return value * (weightToKg[fromUnit] || 1);
   if (category === "Volume") return value * (volumeToLiters[fromUnit] || 1);
   if (category === "Velocity") return value * (velocityToMps[fromUnit] || 1);
+  if (category === "Energy") return value * (energyToJoules[fromUnit] || 1);
   return value;
 }
 
