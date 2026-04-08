@@ -8,6 +8,82 @@ export interface RealityComparison {
   value: string;
 }
 
+const iconTokenMap: Record<string, string> = {
+  "⚡": "zap",
+  "🔋": "battery",
+  "💡": "lightbulb",
+  "💻": "laptop",
+  "🖥️": "monitor",
+  "🎮": "gamepad-2",
+  "❄️": "snowflake",
+  "🏠": "house",
+  "🍕": "pizza",
+  "👕": "shirt",
+  "🧊": "ice-cream-cone",
+  "📡": "radar",
+  "💇": "scissors",
+  "📱": "smartphone",
+  "♿": "accessibility",
+  "🚗": "car",
+  "🏡": "house",
+  "🚿": "shower-head",
+  "👔": "shirt",
+  "📺": "tv",
+  "🛴": "bike",
+  "🕹️": "gamepad-2",
+  "🍞": "sandwich",
+  "☕": "coffee",
+  "👟": "footprints",
+  "🎧": "headphones",
+  "🏍️": "bike",
+  "🏎️": "car",
+  "🎓": "graduation-cap",
+  "🚢": "ship",
+  "🏝️": "palmtree",
+  "🛥️": "ship",
+  "⏰": "clock-3",
+  "🍌": "leaf",
+  "🛹": "person-standing",
+  "🎹": "music-2",
+  "🚌": "bus",
+  "🐋": "fish",
+  "🏈": "goal",
+  "🗼": "tower-control",
+  "🌉": "bridge",
+  "🏔️": "mountain",
+  "🏃": "person-standing",
+  "📎": "paperclip",
+  "🥚": "egg",
+  "🐹": "paw-print",
+  "🐱": "cat",
+  "🎳": "circle-dot",
+  "🐕": "dog",
+  "🧑": "user",
+  "🐴": "horse",
+  "🐘": "elephant",
+  "🥄": "utensils",
+  "🥃": "glass-water",
+  "🛁": "bath",
+  "♨️": "waves",
+  "🏊": "waves",
+  "🚶": "footprints",
+  "🛣": "route",
+  "🐆": "activity",
+  "✈": "plane",
+  "🔊": "volume-2",
+  "🛰": "satellite",
+  "🥶": "snowflake",
+  "🧥": "shirt",
+  "🌤️": "sun-medium",
+  "😊": "smile",
+  "☀️": "sun",
+  "🔥": "flame",
+  "🌋": "mountain",
+  "💨": "wind",
+};
+
+const toIconKey = (token: string) => iconTokenMap[token] || "sparkles";
+
 // ── POWER / ENERGY TRANSLATIONS ────────────────────────────────────────────
 
 const powerEquivalents: { name: string; icon: string; watts: number }[] = [
@@ -47,7 +123,7 @@ export function translatePowerLoad(totalWatts: number): RealityComparison[] {
     const count = totalWatts / eq.watts;
     if (count >= 0.8 && count <= 500) {
       results.push({
-        icon: eq.icon,
+        icon: toIconKey(eq.icon),
         label: eq.name,
         value: count >= 2
           ? `Running ${Math.round(count)} ${eq.name}s simultaneously`
@@ -67,7 +143,7 @@ export function translateMonthlyEnergy(monthlyKwh: number): RealityComparison[] 
     const count = monthlyKwh / eq.kwhPerUnit;
     if (count >= 1 && count <= 100000) {
       results.push({
-        icon: eq.icon,
+        icon: toIconKey(eq.icon),
         label: eq.name,
         value: `${Math.round(count).toLocaleString()} ${eq.name}s`,
       });
@@ -118,7 +194,7 @@ export function translateFinancialAmount(amountUSD: number): RealityComparison[]
         ? `${Math.round(count)} ${eq.name}${Math.round(count) !== 1 ? "s" : ""}`
         : `one ${eq.name}`;
       results.push({
-        icon: eq.icon,
+        icon: toIconKey(eq.icon),
         label: eq.name,
         value: `Enough to buy ${countStr}`,
       });
@@ -132,7 +208,7 @@ export function translateFinancialAmount(amountUSD: number): RealityComparison[]
     const daysOfWork = amountUSD / dailyMinWage;
     if (daysOfWork >= 1) {
       results.push({
-        icon: "⏰",
+        icon: "clock-3",
         label: "minimum wage work days",
         value: `${Math.round(daysOfWork).toLocaleString()} work days at minimum wage`,
       });
@@ -241,7 +317,7 @@ export function translateLength(meters: number): RealityComparison[] {
     const count = meters / unit.metersPerUnit;
     if (count >= 1 && count <= 999999) {
       results.push({
-        icon: unit.icon,
+        icon: toIconKey(unit.icon),
         label: unit.name,
         value: `${Math.round(count).toLocaleString()} ${unit.plural}`,
       });
@@ -259,7 +335,7 @@ export function translateWeight(kg: number): RealityComparison[] {
     const count = kg / unit.kgPerUnit;
     if (count >= 1 && count <= 999999) {
       results.push({
-        icon: unit.icon,
+        icon: toIconKey(unit.icon),
         label: unit.name,
         value: `${Math.round(count).toLocaleString()} ${unit.plural}`,
       });
@@ -277,7 +353,7 @@ export function translateVolume(liters: number): RealityComparison[] {
     const count = liters / unit.litersPerUnit;
     if (count >= 1 && count <= 999999) {
       results.push({
-        icon: unit.icon,
+        icon: toIconKey(unit.icon),
         label: unit.name,
         value: `${Math.round(count).toLocaleString()} ${unit.plural}`,
       });
@@ -290,16 +366,16 @@ export function translateVolume(liters: number): RealityComparison[] {
 export function translateTemperature(celsius: number): FunTempComparison[] {
   const comparisons: FunTempComparison[] = [];
 
-  if (celsius < -40) comparisons.push({ icon: "🥶", label: "Extreme", value: "Colder than the coldest day in Siberia" });
-  else if (celsius < -10) comparisons.push({ icon: "❄️", label: "Frigid", value: "Cold enough to freeze your eyelashes shut" });
-  else if (celsius < 0) comparisons.push({ icon: "🧊", label: "Freezing", value: "Water turns to ice — bundle up!" });
-  else if (celsius < 10) comparisons.push({ icon: "🧥", label: "Chilly", value: "Light jacket weather — your breath is visible" });
-  else if (celsius < 20) comparisons.push({ icon: "🌤️", label: "Mild", value: "Perfect hoodie weather" });
-  else if (celsius < 25) comparisons.push({ icon: "😊", label: "Comfortable", value: "Room temperature — t-shirt vibes" });
-  else if (celsius < 35) comparisons.push({ icon: "☀️", label: "Warm", value: "Beach weather — sunscreen required" });
-  else if (celsius < 45) comparisons.push({ icon: "🔥", label: "Hot", value: "Hot enough to fry an egg on the sidewalk" });
-  else if (celsius < 100) comparisons.push({ icon: "🌋", label: "Extreme", value: "Hotter than Death Valley record" });
-  else if (celsius >= 100) comparisons.push({ icon: "💨", label: "Boiling", value: "Water boils — now you're cooking" });
+  if (celsius < -40) comparisons.push({ icon: "snowflake", label: "Extreme", value: "Colder than the coldest day in Siberia" });
+  else if (celsius < -10) comparisons.push({ icon: "snowflake", label: "Frigid", value: "Cold enough to freeze your eyelashes shut" });
+  else if (celsius < 0) comparisons.push({ icon: "ice-cream-cone", label: "Freezing", value: "Water turns to ice — bundle up!" });
+  else if (celsius < 10) comparisons.push({ icon: "shirt", label: "Chilly", value: "Light jacket weather — your breath is visible" });
+  else if (celsius < 20) comparisons.push({ icon: "sun-medium", label: "Mild", value: "Perfect hoodie weather" });
+  else if (celsius < 25) comparisons.push({ icon: "smile", label: "Comfortable", value: "Room temperature — t-shirt vibes" });
+  else if (celsius < 35) comparisons.push({ icon: "sun", label: "Warm", value: "Beach weather — sunscreen required" });
+  else if (celsius < 45) comparisons.push({ icon: "flame", label: "Hot", value: "Hot enough to fry an egg on the sidewalk" });
+  else if (celsius < 100) comparisons.push({ icon: "mountain", label: "Extreme", value: "Hotter than Death Valley record" });
+  else if (celsius >= 100) comparisons.push({ icon: "wind", label: "Boiling", value: "Water boils — now you're cooking" });
 
   return comparisons;
 }
@@ -312,7 +388,7 @@ export function translateVelocity(metersPerSecond: number): RealityComparison[] 
     const count = metersPerSecond / unit.metersPerSecond;
     if (count >= 0.2 && count <= 999999) {
       results.push({
-        icon: unit.icon,
+        icon: toIconKey(unit.icon),
         label: unit.name,
         value: count >= 2
           ? `${count.toFixed(1)} ${unit.plural}`
@@ -377,7 +453,7 @@ export interface PowerLevelMilestone {
   level: string;
   title: string;
   description: string;
-  emoji: string;
+  icon: string;
   cssClass: string;
 }
 
@@ -387,7 +463,7 @@ export function checkPowerLevel(amount: number): PowerLevelMilestone | null {
       level: "LEGENDARY",
       title: "Legendary Wealth Unlocked",
       description: "You've entered 8-figure territory. Your financial power level is... immeasurable.",
-      emoji: "👑",
+      icon: "crown",
       cssClass: "milestone-legendary",
     };
   }
@@ -396,7 +472,7 @@ export function checkPowerLevel(amount: number): PowerLevelMilestone | null {
       level: "OVER 9000",
       title: "IT'S OVER 9000!",
       description: "Your financial power level has officially broken the scanner. Welcome to the millionaire's club.",
-      emoji: "💎",
+      icon: "sparkles",
       cssClass: "milestone-over-9000",
     };
   }
@@ -405,7 +481,7 @@ export function checkPowerLevel(amount: number): PowerLevelMilestone | null {
       level: "ELITE",
       title: "Half-Million Hero",
       description: "Half a million. That's generational thinking. Your compound interest is doing push-ups.",
-      emoji: "🏆",
+      icon: "trophy",
       cssClass: "milestone-elite",
     };
   }
@@ -414,7 +490,7 @@ export function checkPowerLevel(amount: number): PowerLevelMilestone | null {
       level: "POWER",
       title: "Six-Figure Gateway",
       description: "The first $100K is the hardest. After this, compounding does the heavy lifting.",
-      emoji: "⚡",
+      icon: "zap",
       cssClass: "milestone-power",
     };
   }

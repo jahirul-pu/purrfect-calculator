@@ -1,5 +1,5 @@
 import { type Insight, type InsightTone } from "@/lib/insights";
-import { Sparkles } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Flame, Sparkles, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const toneStyles: Record<InsightTone, string> = {
@@ -10,6 +10,15 @@ const toneStyles: Record<InsightTone, string> = {
 };
 
 export function InsightBox({ insight, className }: { insight: Insight; className?: string }) {
+  const insightIcon =
+    insight.icon === "check-circle-2"
+      ? <CheckCircle2 className="h-4 w-4" />
+      : insight.icon === "alert-triangle"
+        ? <AlertTriangle className="h-4 w-4" />
+        : insight.icon === "x-circle"
+          ? <XCircle className="h-4 w-4" />
+          : <Flame className="h-4 w-4" />;
+
   return (
     <div
       className={cn(
@@ -20,7 +29,7 @@ export function InsightBox({ insight, className }: { insight: Insight; className
     >
       <div className="flex items-center gap-2 shrink-0 mt-0.5">
         <Sparkles className="h-4 w-4 opacity-60" />
-        <span className="text-lg">{insight.emoji}</span>
+        <span className="inline-flex items-center">{insightIcon}</span>
       </div>
       <div className="space-y-0.5">
         <p className="text-[10px] font-black uppercase tracking-[0.15em] opacity-50">Insight</p>

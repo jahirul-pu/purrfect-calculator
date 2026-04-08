@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Toggle } from "@/components/ui/toggle";
-import { Orbit } from "lucide-react";
+import { Circle, Flame, Moon, Orbit, Satellite, Snowflake, Sparkles, Star, Sun } from "lucide-react";
 
 type WeightUnit = "kg" | "lb";
 type SortOrder = "none" | "heaviest" | "lightest";
@@ -12,42 +12,67 @@ type SortOrder = "none" | "heaviest" | "lightest";
 interface CelestialBody {
   name: string;
   gravityRelativeToEarth: number;
-  emoji: string;
+  iconKey: string;
 }
 
 const planets: CelestialBody[] = [
-  { name: "Mercury", gravityRelativeToEarth: 0.378, emoji: "☿" },
-  { name: "Venus", gravityRelativeToEarth: 0.907, emoji: "♀" },
-  { name: "Mars", gravityRelativeToEarth: 0.377, emoji: "♂" },
-  { name: "Jupiter", gravityRelativeToEarth: 2.36, emoji: "♃" },
-  { name: "Saturn", gravityRelativeToEarth: 1.065, emoji: "♄" },
-  { name: "Uranus", gravityRelativeToEarth: 0.886, emoji: "♅" },
-  { name: "Neptune", gravityRelativeToEarth: 1.122, emoji: "♆" },
+  { name: "Mercury", gravityRelativeToEarth: 0.378, iconKey: "planet" },
+  { name: "Venus", gravityRelativeToEarth: 0.907, iconKey: "planet" },
+  { name: "Mars", gravityRelativeToEarth: 0.377, iconKey: "planet" },
+  { name: "Jupiter", gravityRelativeToEarth: 2.36, iconKey: "planet" },
+  { name: "Saturn", gravityRelativeToEarth: 1.065, iconKey: "planet-ring" },
+  { name: "Uranus", gravityRelativeToEarth: 0.886, iconKey: "planet" },
+  { name: "Neptune", gravityRelativeToEarth: 1.122, iconKey: "planet" },
 ];
 
 const dwarfPlanets: CelestialBody[] = [
-  { name: "Pluto", gravityRelativeToEarth: 0.063, emoji: "♇" },
-  { name: "Eris", gravityRelativeToEarth: 0.084, emoji: "🪐" },
-  { name: "Haumea", gravityRelativeToEarth: 0.044, emoji: "💠" },
-  { name: "Makemake", gravityRelativeToEarth: 0.05, emoji: "🛰" },
-  { name: "Ceres", gravityRelativeToEarth: 0.028, emoji: "⚪" },
+  { name: "Pluto", gravityRelativeToEarth: 0.063, iconKey: "planet" },
+  { name: "Eris", gravityRelativeToEarth: 0.084, iconKey: "planet-ring" },
+  { name: "Haumea", gravityRelativeToEarth: 0.044, iconKey: "sparkle" },
+  { name: "Makemake", gravityRelativeToEarth: 0.05, iconKey: "satellite" },
+  { name: "Ceres", gravityRelativeToEarth: 0.028, iconKey: "circle" },
 ];
 
 const moons: CelestialBody[] = [
-  { name: "Earth Moon", gravityRelativeToEarth: 0.165, emoji: "🌕" },
-  { name: "Europa", gravityRelativeToEarth: 0.134, emoji: "🧊" },
-  { name: "Io", gravityRelativeToEarth: 0.183, emoji: "🌋" },
-  { name: "Ganymede", gravityRelativeToEarth: 0.146, emoji: "🛰" },
-  { name: "Titan", gravityRelativeToEarth: 0.138, emoji: "🟠" },
-  { name: "Enceladus", gravityRelativeToEarth: 0.011, emoji: "❄" },
+  { name: "Earth Moon", gravityRelativeToEarth: 0.165, iconKey: "moon" },
+  { name: "Europa", gravityRelativeToEarth: 0.134, iconKey: "snowflake" },
+  { name: "Io", gravityRelativeToEarth: 0.183, iconKey: "flame" },
+  { name: "Ganymede", gravityRelativeToEarth: 0.146, iconKey: "satellite" },
+  { name: "Titan", gravityRelativeToEarth: 0.138, iconKey: "moon" },
+  { name: "Enceladus", gravityRelativeToEarth: 0.011, iconKey: "snowflake" },
 ];
 
 const stars: CelestialBody[] = [
-  { name: "Sun", gravityRelativeToEarth: 27.9, emoji: "☀" },
-  { name: "Proxima Centauri", gravityRelativeToEarth: 1.14, emoji: "🔴" },
-  { name: "Sirius A", gravityRelativeToEarth: 2.34, emoji: "✨" },
-  { name: "Betelgeuse", gravityRelativeToEarth: 0.001, emoji: "🌟" },
+  { name: "Sun", gravityRelativeToEarth: 27.9, iconKey: "sun" },
+  { name: "Proxima Centauri", gravityRelativeToEarth: 1.14, iconKey: "star" },
+  { name: "Sirius A", gravityRelativeToEarth: 2.34, iconKey: "sparkle" },
+  { name: "Betelgeuse", gravityRelativeToEarth: 0.001, iconKey: "star" },
 ];
+
+function getBodyIcon(iconKey: string) {
+  switch (iconKey) {
+    case "sun":
+      return <Sun className="h-4 w-4" />;
+    case "moon":
+      return <Moon className="h-4 w-4" />;
+    case "planet-ring":
+      return <Orbit className="h-4 w-4" />;
+    case "planet":
+      return <Circle className="h-4 w-4" />;
+    case "satellite":
+      return <Satellite className="h-4 w-4" />;
+    case "snowflake":
+      return <Snowflake className="h-4 w-4" />;
+    case "flame":
+      return <Flame className="h-4 w-4" />;
+    case "sparkle":
+      return <Sparkles className="h-4 w-4" />;
+    case "star":
+      return <Star className="h-4 w-4" />;
+    default:
+      return <Circle className="h-4 w-4" />;
+  }
+}
 
 function formatWeight(value: number) {
   return value.toLocaleString(undefined, {
@@ -92,7 +117,7 @@ function GravitySection({
               <CardContent className="p-3 space-y-1">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold">{body.name}</p>
-                  <span className="text-base" aria-hidden="true">{body.emoji}</span>
+                  <span className="text-muted-foreground" aria-hidden="true">{getBodyIcon(body.iconKey)}</span>
                 </div>
                 <p className="text-xl font-bold">{formatWeight(bodyWeight)} {unit}</p>
                 <p className="text-xs text-muted-foreground">{body.gravityRelativeToEarth.toFixed(3)} x Earth gravity</p>

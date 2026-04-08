@@ -94,7 +94,6 @@ export function PowerLevelMilestoneCard({ amount, className }: PowerLevelMilesto
             >
               {milestone.title}
             </span>
-            <span className="text-lg">{milestone.emoji}</span>
           </div>
           <p className="text-xs font-medium text-foreground/70 leading-relaxed">
             {milestone.description}

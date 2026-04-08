@@ -37,6 +37,10 @@ function App() {
   });
 
   const activeCurrency = currencies.find(c => c.code === currency) || currencies[0];
+  const isCurrencyContextTab = ["power", "vehicle", "loan", "invest", "curr", "banking"].includes(activeTab);
+  const headerSubtitle = isCurrencyContextTab
+    ? <>Professional-grade utility tools localized for <strong>{activeCurrency.name}</strong>.</>
+    : "Professional-grade utility tools for everyday life calculations.";
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -132,7 +136,7 @@ function App() {
               Ultimate Calculator Suite
             </h1>
             <p className="text-xl text-muted-foreground max-w-[600px]">
-              Professional-grade utility tools localized for <strong>{activeCurrency.name}</strong>.
+              {headerSubtitle}
             </p>
           </header>
 
